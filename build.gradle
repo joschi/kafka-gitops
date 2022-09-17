@@ -37,7 +37,7 @@ dependencies {
     testImplementation group: 'org.spockframework', name: 'spock-core', version: '1.0-groovy-2.4'
     testImplementation group: 'cglib', name: 'cglib-nodep', version: '2.2'
     testImplementation group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
-    testImplementation group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'
+    testImplementation group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.1'
 }
 
 jacocoTestReport {
