@@ -31,7 +31,7 @@ jobs:
         file: ./build/reports/jacoco/report.xml
 
     - name: Upload build artifact
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v3
       with:
         name: kafka-gitops.jar
         path: build/libs/kafka-gitops-all.jar
