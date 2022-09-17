@@ -18,7 +18,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         distribution: temurin
-        java-version: 1.8
+        java-version: 8
 
     - name: Start docker compose for integration tests
       run: docker-compose -f docker/docker-compose.yml up -d
