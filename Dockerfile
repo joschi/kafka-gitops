@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-slim
+FROM openjdk:11-jre-slim
 
 RUN apt-get update && apt-get --yes upgrade && \
     apt-get install -y python3 python3-pip curl && \
