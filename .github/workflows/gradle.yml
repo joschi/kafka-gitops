@@ -23,8 +23,19 @@ jobs:
     - name: Start docker compose for integration tests
       run: docker-compose -f docker/docker-compose.yml up -d
 
-    - name: Build with Gradle
-      run: ./gradlew --info build jacocoTestReport
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v2
+
+    - name: Run build with Gradle wrapper
+      id: gradle
+      run: ./gradlew --info --scan build jacocoTestReport
+
+    - name: Upload build reports
+      uses: actions/upload-artifact@v3
+      if: success() || failure()
+      with:
+        name: build-reports
+        path: build/reports/
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
