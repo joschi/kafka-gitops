@@ -134,7 +134,7 @@ class PlanCommandIntegrationSpec extends Specification {
         "seed-blacklist-topics"             | false
     }
 
-    void 'test include unchanged flag - #planNam #includeUnchanged'() {
+    void 'test include unchanged flag - #planName #includeUnchanged'() {
         setup:
         TestUtils.cleanUpCluster()
         TestUtils.seedCluster()
