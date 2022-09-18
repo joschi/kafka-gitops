@@ -7,5 +7,5 @@
 - [Permissions](/permissions.md)
 - [Specification](/specification.md)
 - **Links**
-- [Contributing](https://github.com/devshawn/kafka-gitops/blob/master/CONTRIBUTING.md)
-- [GitHub](https://github.com/devshawn/kafka-gitops)
+- [Contributing](https://github.com/joschi/kafka-gitops/blob/master/CONTRIBUTING.md)
+- [GitHub](https://github.com/joschi/kafka-gitops)

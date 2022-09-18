@@ -46,5 +46,5 @@ Copyright (c) 2020 Shawn Seymour.
 
 Licensed under the [Apache 2.0 license][license].
 
-[contributing]: https://github.com/devshawn/kafka-gitops/blob/master/CONTRIBUTING.md
-[license]: https://github.com/devshawn/kafka-gitops/blob/master/LICENSE
+[contributing]: https://github.com/joschi/kafka-gitops/blob/master/CONTRIBUTING.md
+[license]: https://github.com/joschi/kafka-gitops/blob/master/LICENSE

@@ -7,4 +7,4 @@
 - Manage topics, services, and ACLs with desired state files
 
 [Documentation](/documentation.md)
-[GitHub](https://github.com/devshawn/kafka-gitops)
+[GitHub](https://github.com/joschi/kafka-gitops)

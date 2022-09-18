@@ -41,7 +41,7 @@ Commands:
 
 ## Docker
 
-We provide a public docker image: [devshawn/kafka-gitops][docker].
+We provide a public docker image: [joschi/kafka-gitops][docker].
 
-[releases]: https://github.com/devshawn/kafka-gitops/releases
-[docker]: https://hub.docker.com/r/devshawn/kafka-gitops
+[releases]: https://github.com/joschi/kafka-gitops/releases
+[docker]: https://github.com/joschi/kafka-gitops/pkgs/container/kafka-gitops
