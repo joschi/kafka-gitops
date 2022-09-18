@@ -12,10 +12,14 @@ group 'com.devshawn'
 
 mainClassName = 'com.devshawn.kafka.gitops.MainCommand'
 
-sourceCompatibility = 1.8
-
 repositories {
     mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
 }
 
 dependencies {
