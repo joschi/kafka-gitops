@@ -1,7 +1,2 @@
-FROM openjdk:11-jre-slim
-
-RUN apt-get update && apt-get --yes upgrade && \
-    apt-get install -y python3 python3-pip curl && \
-    rm -rf /var/lib/apt/lists/*
-
+FROM eclipse-temurin:8-jre-jammy
 COPY ./build/output/kafka-gitops /usr/local/bin/kafka-gitops
