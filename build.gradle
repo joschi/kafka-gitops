@@ -6,6 +6,7 @@ plugins {
     id 'jacoco'
     id 'org.inferred.processors' version '3.7.0'
     id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id "org.sonarqube" version "3.4.0.2513"
 }
 
 group 'com.devshawn'
@@ -86,4 +87,12 @@ task buildExecutableJar(type: Exec) {
 task buildRelease(type: Zip, group: "build") {
     dependsOn buildExecutableJar
     from("$buildDir/output")
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "joschi_kafka-gitops"
+        property "sonar.organization", "joschi"
+        property "sonar.host.url", "https://sonarcloud.io"
+    }
 }
