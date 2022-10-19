@@ -1,5 +1,6 @@
 package com.devshawn.kafka.gitops.config
 
+import com.devshawn.kafka.gitops.exception.MissingConfigurationException
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.common.config.SaslConfigs
 import org.junit.ClassRule
@@ -59,4 +60,16 @@ class KafkaGitopsConfigLoaderSpec extends Specification {
         config.config.get(SaslConfigs.SASL_MECHANISM) == "PLAIN"
     }
 
+    void 'load() fails with MissingConfigurationException if SASL mechanism is missing'() {
+        setup:
+        environmentVariables.set("KAFKA_SASL_JAAS_USERNAME", "test")
+        environmentVariables.set("KAFKA_SASL_JAAS_PASSWORD", "test-secret")
+        environmentVariables.clear("KAFKA_SASL_MECHANISM")
+
+        when:
+        KafkaGitopsConfigLoader.load()
+
+        then:
+        thrown(MissingConfigurationException)
+    }
 }
