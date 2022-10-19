@@ -15,7 +15,7 @@ jobs:
     name: Build Release
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
     steps:
       - uses: actions/checkout@v3
