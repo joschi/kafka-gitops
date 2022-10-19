@@ -36,7 +36,7 @@ dependencies {
     annotationProcessor 'org.inferred:freebuilder:2.7.0'
     compileOnly 'org.inferred:freebuilder:2.7.0'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
     testCompileOnly group: 'junit', name: 'junit', version: '4.13.2'
     testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
     testImplementation group: 'org.apache.groovy', name: 'groovy', version: '4.0.5'
