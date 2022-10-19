@@ -30,7 +30,7 @@ dependencies {
     implementation 'info.picocli:picocli:4.6.3'
 
     implementation 'org.slf4j:slf4j-api:1.7.30'
-    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.4.4'
     implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.4.4'
 
     annotationProcessor 'org.inferred:freebuilder:2.7.0'
