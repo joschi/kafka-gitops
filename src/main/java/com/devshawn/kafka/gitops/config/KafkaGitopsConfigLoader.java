@@ -62,10 +62,21 @@ public class KafkaGitopsConfigLoader {
 
         handleAuthentication(username, password, config);
 
-        log.info("Kafka Config: {}", config);
+        log.info("Kafka Config: {}", sanitizeConfiguration(config));
 
         builder.putAllConfig(config);
         handleDefaultConfig(builder);
+    }
+
+    private static Map<String, Object> sanitizeConfiguration(Map<String, Object> config) {
+        Map<String, Object> sanitizedConfig = new HashMap<>(config);
+
+        String saslConfig = (String) config.get(SaslConfigs.SASL_JAAS_CONFIG);
+        if (saslConfig != null) {
+            sanitizedConfig.replace(SaslConfigs.SASL_JAAS_CONFIG, saslConfig.replaceFirst("password=\".*\";", "password=[redacted];"));
+        }
+
+        return sanitizedConfig;
     }
 
     private static void handleDefaultConfig(KafkaGitopsConfig.Builder builder) {
