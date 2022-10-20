@@ -34,7 +34,7 @@ dependencies {
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.4.4'
     implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.4.4'
 
-    annotationProcessor 'org.inferred:freebuilder:2.7.0'
+    annotationProcessor 'org.inferred:freebuilder:2.8.0'
     compileOnly 'org.inferred:freebuilder:2.7.0'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
