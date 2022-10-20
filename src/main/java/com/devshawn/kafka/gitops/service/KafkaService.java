@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 public class KafkaService {
 
@@ -101,7 +100,7 @@ public class KafkaService {
 
     public Map<ConfigResource, Config> describeConfigsForTopics(List<String> topicNames) {
         try (final AdminClient adminClient = buildAdminClient()) {
-            List<ConfigResource> resources = topicNames.stream().map(it -> new ConfigResource(ConfigResource.Type.TOPIC, it)).collect(Collectors.toList());
+            List<ConfigResource> resources = topicNames.stream().map(it -> new ConfigResource(ConfigResource.Type.TOPIC, it)).toList();
             return adminClient.describeConfigs(resources).all().get();
         } catch (InterruptedException | ExecutionException ex) {
             throw new KafkaExecutionException("Error thrown when attempting to describe a Kafka topic configuration", ex.getMessage());

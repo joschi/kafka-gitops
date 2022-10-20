@@ -30,18 +30,17 @@ public class LogUtil {
 
     public static void printValidationResult(String message, boolean success) {
         String status = success ? green("VALID") : red("INVALID");
-        System.out.println(String.format("[%s] %s", status, message));
+        System.out.printf("[%s] %s%n", status, message);
     }
 
     /*
      * Plan
      */
-
     private static void printTopicPlan(TopicPlan topicPlan) {
         switch (topicPlan.getAction()) {
             case ADD:
                 System.out.println(green(String.format("+ [TOPIC] %s", topicPlan.getName())));
-                printTopicConfigPlanForNewTopics(topicPlan.getTopicDetails().get());
+                printTopicConfigPlanForNewTopics(topicPlan.getTopicDetails().orElseThrow());
                 System.out.println("\n");
                 break;
             case UPDATE:
@@ -59,7 +58,7 @@ public class LogUtil {
 
     private static void printTopicConfigPlanForNewTopics(TopicDetails topicDetails) {
         System.out.println(green(String.format("\t+ partitions: %s", topicDetails.getPartitions())));
-        System.out.println(green(String.format("\t+ replication: %s", topicDetails.getReplication().get())));
+        System.out.println(green(String.format("\t+ replication: %s", topicDetails.getReplication().orElseThrow())));
         if (topicDetails.getConfigs().size() > 0) {
             System.out.println(green("\t+ configs:"));
             topicDetails.getConfigs().forEach((key, value) -> System.out.println(green(String.format("\t\t+ %s: %s", key, value))));
@@ -69,10 +68,10 @@ public class LogUtil {
     private static void printTopicConfigPlan(TopicConfigPlan topicConfigPlan) {
         switch (topicConfigPlan.getAction()) {
             case ADD:
-                System.out.println(green(String.format("\t\t+ %s: %s", topicConfigPlan.getKey(), topicConfigPlan.getValue().get())));
+                System.out.println(green(String.format("\t\t+ %s: %s", topicConfigPlan.getKey(), topicConfigPlan.getValue().orElseThrow())));
                 break;
             case UPDATE:
-                System.out.println(yellow(String.format("\t\t~ %s: %s", topicConfigPlan.getKey(), topicConfigPlan.getValue().get())));
+                System.out.println(yellow(String.format("\t\t~ %s: %s", topicConfigPlan.getKey(), topicConfigPlan.getValue().orElseThrow())));
                 break;
             case REMOVE:
                 System.out.println(red(String.format("\t\t- %s", topicConfigPlan.getKey())));
@@ -114,12 +113,12 @@ public class LogUtil {
      */
 
     public static void printTopicPreApply(TopicPlan topicPlan) {
-        System.out.println(String.format("Applying: [%s]\n", toAction(topicPlan.getAction())));
+        System.out.printf("Applying: [%s]%n%n", toAction(topicPlan.getAction()));
         printTopicPlan(topicPlan);
     }
 
     public static void printAclPreApply(AclPlan aclPlan) {
-        System.out.println(String.format("Applying: [%s]\n", toAction(aclPlan.getAction())));
+        System.out.printf("Applying: [%s]%n%n", toAction(aclPlan.getAction()));
         printAclPlan(aclPlan);
     }
 
@@ -133,20 +132,20 @@ public class LogUtil {
 
     private static void printOverview(DesiredPlan desiredPlan, boolean deleteDisabled, boolean skipAclsDisabled) {
         PlanOverview planOverview = PlanUtil.getOverview(desiredPlan, deleteDisabled, skipAclsDisabled);
-        System.out.println(String.format("%s: %s, %s, %s.", bold("Plan"), toCreate(planOverview.getAdd()),
-                toUpdate(planOverview.getUpdate()), toDelete(planOverview.getRemove())));
+        System.out.printf("%s: %s, %s, %s.%n", bold("Plan"), toCreate(planOverview.getAdd()),
+                toUpdate(planOverview.getUpdate()), toDelete(planOverview.getRemove()));
     }
 
     private static void printTopicOverview(DesiredPlan desiredPlan, boolean deleteDisabled) {
         PlanOverview topicPlanOverview = PlanUtil.getTopicPlanOverview(desiredPlan, deleteDisabled);
-        System.out.println(String.format("Topics: %s, %s, %s.\n", toCreate(topicPlanOverview.getAdd()),
-                toUpdate(topicPlanOverview.getUpdate()), toDelete(topicPlanOverview.getRemove())));
+        System.out.printf("Topics: %s, %s, %s.%n%n", toCreate(topicPlanOverview.getAdd()),
+                toUpdate(topicPlanOverview.getUpdate()), toDelete(topicPlanOverview.getRemove()));
     }
 
     private static void printAclOverview(DesiredPlan desiredPlan, boolean deleteDisabled) {
         PlanOverview aclPlanOverview = PlanUtil.getAclPlanOverview(desiredPlan, deleteDisabled);
-        System.out.println(String.format("ACLs: %s, %s, %s.\n", toCreate(aclPlanOverview.getAdd()),
-                toUpdate(aclPlanOverview.getUpdate()), toDelete(aclPlanOverview.getRemove())));
+        System.out.printf("ACLs: %s, %s, %s.%n%n", toCreate(aclPlanOverview.getAdd()),
+                toUpdate(aclPlanOverview.getUpdate()), toDelete(aclPlanOverview.getRemove()));
     }
 
     private static void printLegend(PlanOverview planOverview) {
@@ -169,20 +168,20 @@ public class LogUtil {
     }
 
     public static void printNoChangesMessage() {
-        System.out.println(String.format("[%s] There are no necessary changes; the actual state matches the desired state.", green("SUCCESS")));
+        System.out.printf("[%s] There are no necessary changes; the actual state matches the desired state.%n", green("SUCCESS"));
     }
 
     public static void printApplyOverview(PlanOverview planOverview) {
-        System.out.println(String.format("[%s] Apply complete! Resources: %s created, %s updated, %s deleted.", green("SUCCESS"),
-                planOverview.getAdd(), planOverview.getUpdate(), planOverview.getRemove()));
+        System.out.printf("[%s] Apply complete! Resources: %s created, %s updated, %s deleted.%n", green("SUCCESS"),
+                planOverview.getAdd(), planOverview.getUpdate(), planOverview.getRemove());
     }
 
     public static void printSimpleSuccess(String message) {
-        System.out.println(String.format("[%s] %s\n", green("SUCCESS"), message));
+        System.out.printf("[%s] %s%n%n", green("SUCCESS"), message);
     }
 
     public static void printSimpleError(String message) {
-        System.out.println(String.format("[%s] %s\n", red("ERROR"), message));
+        System.out.printf("[%s] %s%n%n", red("ERROR"), message);
     }
 
     public static void printGenericError(RuntimeException ex) {
@@ -190,7 +189,7 @@ public class LogUtil {
     }
 
     public static void printGenericError(RuntimeException ex, boolean apply) {
-        System.out.println(String.format("[%s] %s\n", red("ERROR"), ex.getMessage()));
+        System.out.printf("[%s] %s%n%n", red("ERROR"), ex.getMessage());
         if (apply) {
             printApplyErrorMessage();
         } else {
@@ -203,7 +202,7 @@ public class LogUtil {
     }
 
     public static void printKafkaExecutionError(KafkaExecutionException ex, boolean apply) {
-        System.out.println(String.format("[%s] %s:\n%s\n", red("ERROR"), ex.getMessage(), ex.getExceptionMessage()));
+        System.out.printf("[%s] %s:%n%s%n%n", red("ERROR"), ex.getMessage(), ex.getExceptionMessage());
         if (apply) {
             printApplyErrorMessage();
         } else {
@@ -212,17 +211,17 @@ public class LogUtil {
     }
 
     public static void printPlanOutputError(WritePlanOutputException ex) {
-        System.out.println(String.format("[%s] %s", red("ERROR"), ex.getMessage()));
+        System.out.printf("[%s] %s%n", red("ERROR"), ex.getMessage());
     }
 
     private static void printPlanErrorMessage() {
-        System.out.println(String.format("[%s] An error has occurred during the planning process. No plan was created.", red("ERROR")));
+        System.out.printf("[%s] An error has occurred during the planning process. No plan was created.%n", red("ERROR"));
     }
 
     private static void printApplyErrorMessage() {
-        System.out.println(String.format("[%s] An error has occurred during the apply process.", red("ERROR")));
-        System.out.println(String.format("[%s] The apply process has stopped in place. There is no rollback.", red("ERROR")));
-        System.out.println(String.format("[%s] Fix the error, re-create a plan, and apply the new plan to continue.", red("ERROR")));
+        System.out.printf("[%s] An error has occurred during the apply process.%n", red("ERROR"));
+        System.out.printf("[%s] The apply process has stopped in place. There is no rollback.%n", red("ERROR"));
+        System.out.printf("[%s] Fix the error, re-create a plan, and apply the new plan to continue.%n", red("ERROR"));
     }
 
     private static String green(String message) {
@@ -254,14 +253,11 @@ public class LogUtil {
     }
 
     private static String toAction(PlanAction planAction) {
-        switch (planAction) {
-            case ADD:
-                return green("CREATE");
-            case UPDATE:
-                return yellow("UPDATE");
-            case REMOVE:
-                return red("DELETE");
-        }
-        return null;
+        return switch (planAction) {
+            case ADD -> green("CREATE");
+            case UPDATE -> yellow("UPDATE");
+            case REMOVE -> red("DELETE");
+            default -> null;
+        };
     }
 }

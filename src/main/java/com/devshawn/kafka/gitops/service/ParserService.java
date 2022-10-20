@@ -1,7 +1,7 @@
 package com.devshawn.kafka.gitops.service;
 
 import com.devshawn.kafka.gitops.domain.state.DesiredStateFile;
-import com.devshawn.kafka.gitops.domain.state.settings.SettingsFiles;
+import com.devshawn.kafka.gitops.domain.state.settings.Settings;
 import com.devshawn.kafka.gitops.exception.ValidationException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -20,7 +20,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ParserService {
 
@@ -40,24 +39,22 @@ public class ParserService {
 
     public DesiredStateFile parseStateFile() {
         DesiredStateFile desiredStateFile = parseStateFile(file);
-        if (desiredStateFile.getSettings().isPresent() && desiredStateFile.getSettings().get().getFiles().isPresent()) {
+        return desiredStateFile.getSettings().flatMap(Settings::getFiles).map(settingsFiles -> {
             DesiredStateFile.Builder builder = new DesiredStateFile.Builder().mergeFrom(desiredStateFile);
-            SettingsFiles settingsFiles = desiredStateFile.getSettings().get().getFiles().get();
-            if (settingsFiles.getServices().isPresent()) {
-                DesiredStateFile servicesFile = loadExternalFile(settingsFiles.getServices().get(), "Services");
-                builder.putAllServices(servicesFile.getServices());
-            }
-            if (settingsFiles.getTopics().isPresent()) {
-                DesiredStateFile topicsFile = loadExternalFile(settingsFiles.getTopics().get(), "Topics");
-                builder.putAllTopics(topicsFile.getTopics());
-            }
-            if (settingsFiles.getUsers().isPresent()) {
-                DesiredStateFile usersFile = loadExternalFile(settingsFiles.getUsers().get(), "Users");
-                builder.putAllUsers(usersFile.getUsers());
-            }
+            settingsFiles.getServices()
+                    .map(services -> loadExternalFile(services, "Services"))
+                    .ifPresent(servicesFile -> builder.putAllServices(servicesFile.getServices()));
+
+            settingsFiles.getTopics()
+                    .map(topics -> loadExternalFile(topics, "Topics"))
+                    .ifPresent(topicsFile -> builder.putAllTopics(topicsFile.getTopics()));
+
+            settingsFiles.getUsers()
+                    .map(users -> loadExternalFile(users, "Users"))
+                    .ifPresent(usersFile -> builder.putAllUsers(usersFile.getUsers()));
+
             return builder.build();
-        }
-        return desiredStateFile;
+        }).orElse(desiredStateFile);
     }
 
     public DesiredStateFile parseStateFile(File stateFile) {
@@ -106,6 +103,6 @@ public class ParserService {
     private List<String> getYamlFields(JsonMappingException ex) {
         return ex.getPath().stream()
                 .map(JsonMappingException.Reference::getFieldName)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

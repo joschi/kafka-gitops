@@ -11,7 +11,6 @@ import org.inferred.freebuilder.FreeBuilder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @FreeBuilder
 @JsonDeserialize(builder = CustomAclDetails.Builder.class)
@@ -39,7 +38,7 @@ public abstract class CustomAclDetails {
     }
 
     private <E extends Enum<E>> void validateEnum(Class<E> enumData, String value, String field) {
-        List<String> allowedValues = Arrays.stream(enumData.getEnumConstants()).map(Enum::name).filter(it -> !it.equals("ANY") && !it.equals("UNKNOWN")).collect(Collectors.toList());
+        List<String> allowedValues = Arrays.stream(enumData.getEnumConstants()).map(Enum::name).filter(it -> !it.equals("ANY") && !it.equals("UNKNOWN")).toList();
         if (!allowedValues.contains(value)) {
             throw new InvalidAclDefinitionException(field, value, allowedValues);
         }
