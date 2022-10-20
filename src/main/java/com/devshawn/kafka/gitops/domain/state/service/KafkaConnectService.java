@@ -41,7 +41,7 @@ public abstract class KafkaConnectService extends ServiceDetails {
     }
 
     private List<AclDetails.Builder> getConnectWorkerAcls(GetAclOptions options) {
-        String groupId = getGroupId().isPresent() ? getGroupId().get() : options.getServiceName();
+        String groupId = getGroupId().orElse(options.getServiceName());
         String configTopic = getConfigTopic(options.getServiceName());
         String offsetTopic = getOffsetTopic(options.getServiceName());
         String statusTopic = getStatusTopic(options.getServiceName());
@@ -59,24 +59,21 @@ public abstract class KafkaConnectService extends ServiceDetails {
     }
 
     private String getConfigTopic(String serviceName) {
-        if (getStorageTopics().isPresent() && getStorageTopics().get().getConfig().isPresent()) {
-            return getStorageTopics().get().getConfig().get();
-        }
-        return String.format("connect-configs-%s", serviceName);
+        return getStorageTopics()
+                .flatMap(KafkaConnectStorageTopics::getConfig)
+                .orElseGet(() -> String.format("connect-configs-%s", serviceName));
     }
 
     private String getOffsetTopic(String serviceName) {
-        if (getStorageTopics().isPresent() && getStorageTopics().get().getOffset().isPresent()) {
-            return getStorageTopics().get().getOffset().get();
-        }
-        return String.format("connect-offsets-%s", serviceName);
+        return getStorageTopics()
+                .flatMap(KafkaConnectStorageTopics::getOffset)
+                .orElseGet(() -> String.format("connect-offsets-%s", serviceName));
     }
 
     private String getStatusTopic(String serviceName) {
-        if (getStorageTopics().isPresent() && getStorageTopics().get().getStatus().isPresent()) {
-            return getStorageTopics().get().getStatus().get();
-        }
-        return String.format("connect-status-%s", serviceName);
+        return getStorageTopics()
+                .flatMap(KafkaConnectStorageTopics::getStatus)
+                .orElseGet( () -> String.format("connect-status-%s", serviceName));
     }
 
     public static class Builder extends KafkaConnectService_Builder {

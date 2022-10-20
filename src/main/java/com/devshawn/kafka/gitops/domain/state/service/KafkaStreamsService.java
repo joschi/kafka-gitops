@@ -39,7 +39,7 @@ public abstract class KafkaStreamsService extends ServiceDetails {
     }
 
     private List<AclDetails.Builder> getInternalAcls(String serviceName) {
-        String applicationId = getApplicationId().isPresent() ? getApplicationId().get() : serviceName;
+        String applicationId = getApplicationId().orElse(serviceName);
         List<AclDetails.Builder> acls = new ArrayList<>();
         acls.add(generatePrefixedTopicACL(applicationId, getPrincipal(), "READ"));
         acls.add(generatePrefixedTopicACL(applicationId, getPrincipal(), "WRITE"));

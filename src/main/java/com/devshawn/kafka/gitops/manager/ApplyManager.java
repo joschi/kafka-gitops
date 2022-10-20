@@ -27,7 +27,7 @@ public class ApplyManager {
         desiredPlan.getTopicPlans().forEach(topicPlan -> {
             if (topicPlan.getAction() == PlanAction.ADD) {
                 LogUtil.printTopicPreApply(topicPlan);
-                kafkaService.createTopic(topicPlan.getName(), topicPlan.getTopicDetails().get());
+                kafkaService.createTopic(topicPlan.getName(), topicPlan.getTopicDetails().orElseThrow());
                 LogUtil.printPostApply();
             } else if (topicPlan.getAction() == PlanAction.UPDATE) {
                 LogUtil.printTopicPreApply(topicPlan);

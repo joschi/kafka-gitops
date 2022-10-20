@@ -37,7 +37,7 @@ public abstract class ApplicationService extends ServiceDetails {
         }
 
         if (!getConsumes().isEmpty()) {
-            String groupId = getGroupId().isPresent() ? getGroupId().get() : options.getServiceName();
+            String groupId = getGroupId().orElseGet(options::getServiceName);
             acls.add(generateConsumerGroupAcl(groupId, getPrincipal(), "READ"));
         }
         return acls;

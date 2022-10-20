@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class PlanManager {
 
@@ -48,7 +47,7 @@ public class PlanManager {
 
     public void planTopics(DesiredState desiredState, DesiredPlan.Builder desiredPlan) {
         List<TopicListing> topics = kafkaService.getTopics();
-        List<String> topicNames = topics.stream().map(TopicListing::name).collect(Collectors.toList());
+        List<String> topicNames = topics.stream().map(TopicListing::name).toList();
         Map<String, List<ConfigEntry>> topicConfigs = fetchTopicConfigurations(topicNames);
 
         desiredState.getTopics().forEach((key, value) -> {
@@ -90,7 +89,7 @@ public class PlanManager {
         Map<String, TopicConfigPlan> configPlans = new HashMap<>();
         List<ConfigEntry> customConfigs = configs.stream()
                 .filter(it -> it.source() == ConfigEntry.ConfigSource.DYNAMIC_TOPIC_CONFIG)
-                .collect(Collectors.toList());
+                .toList();
 
         customConfigs.forEach(currentConfig -> {
             String newConfig = topicDetails.getConfigs().getOrDefault(currentConfig.name(), null);
@@ -181,7 +180,7 @@ public class PlanManager {
     }
 
     public DesiredPlan readPlanFromFile() {
-        if (!managerConfig.getPlanFile().isPresent()) {
+        if (managerConfig.getPlanFile().isEmpty()) {
             return null;
         }
 
@@ -211,7 +210,7 @@ public class PlanManager {
     private Map<String, List<ConfigEntry>> fetchTopicConfigurations(List<String> topicNames) {
         Map<String, List<ConfigEntry>> map = new HashMap<>();
         Map<ConfigResource, Config> configs = kafkaService.describeConfigsForTopics(topicNames);
-        configs.forEach((key, value) -> map.put(key.name(), new ArrayList<ConfigEntry>(value.entries())));
+        configs.forEach((key, value) -> map.put(key.name(), new ArrayList<>(value.entries())));
         return map;
     }
 }

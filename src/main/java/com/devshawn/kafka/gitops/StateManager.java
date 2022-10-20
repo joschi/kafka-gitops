@@ -14,6 +14,9 @@ import com.devshawn.kafka.gitops.domain.state.DesiredState;
 import com.devshawn.kafka.gitops.domain.state.DesiredStateFile;
 import com.devshawn.kafka.gitops.domain.state.TopicDetails;
 import com.devshawn.kafka.gitops.domain.state.service.KafkaStreamsService;
+import com.devshawn.kafka.gitops.domain.state.settings.Settings;
+import com.devshawn.kafka.gitops.domain.state.settings.SettingsTopics;
+import com.devshawn.kafka.gitops.domain.state.settings.SettingsTopicsBlacklist;
 import com.devshawn.kafka.gitops.exception.ConfluentCloudException;
 import com.devshawn.kafka.gitops.exception.InvalidAclDefinitionException;
 import com.devshawn.kafka.gitops.exception.MissingConfigurationException;
@@ -36,14 +39,11 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class StateManager {
-
-    private static org.slf4j.Logger log = LoggerFactory.getLogger(StateManager.class);
 
     private final ManagerConfig managerConfig;
     private final ObjectMapper objectMapper;
@@ -116,13 +116,11 @@ public class StateManager {
         List<ServiceAccount> serviceAccounts = confluentCloudService.getServiceAccounts();
         AtomicInteger count = new AtomicInteger();
         if (isConfluentCloudEnabled(desiredStateFile)) {
-            desiredStateFile.getServices().forEach((name, service) -> {
-                createServiceAccount(name, serviceAccounts, count, false);
-            });
+            desiredStateFile.getServices().forEach((name, service) ->
+                    createServiceAccount(name, serviceAccounts, count, false));
 
-            desiredStateFile.getUsers().forEach((name, user) -> {
-                createServiceAccount(name, serviceAccounts, count, true);
-            });
+            desiredStateFile.getUsers().forEach((name, user) ->
+                    createServiceAccount(name, serviceAccounts, count, true));
         } else {
             throw new ConfluentCloudException("Confluent Cloud must be enabled in the state file to use this command.");
         }
@@ -223,9 +221,8 @@ public class StateManager {
     private void generateServiceAcls(DesiredState.Builder desiredState, DesiredStateFile desiredStateFile) {
         desiredStateFile.getServices().forEach((name, service) -> {
             AtomicReference<Integer> index = new AtomicReference<>(0);
-            service.getAcls(buildGetAclOptions(name)).forEach(aclDetails -> {
-                desiredState.putAcls(String.format("%s-%s", name, index.getAndSet(index.get() + 1)), buildAclDetails(name, aclDetails));
-            });
+            service.getAcls(buildGetAclOptions(name)).forEach(aclDetails ->
+                    desiredState.putAcls(String.format("%s-%s", name, index.getAndSet(index.get() + 1)), buildAclDetails(name, aclDetails)));
 
             if (desiredStateFile.getCustomServiceAcls().containsKey(name)) {
                 Map<String, CustomAclDetails> customAcls = desiredStateFile.getCustomServiceAcls().get(name);
@@ -271,11 +268,12 @@ public class StateManager {
 
     private List<String> getPrefixedTopicsToIgnore(DesiredStateFile desiredStateFile) {
         List<String> topics = new ArrayList<>();
-        try {
-            topics.addAll(desiredStateFile.getSettings().get().getTopics().get().getBlacklist().get().getPrefixed());
-        } catch (NoSuchElementException ex) {
-            // Do nothing, no blacklist exists
-        }
+        desiredStateFile.getSettings()
+                .flatMap(Settings::getTopics)
+                .flatMap(SettingsTopics::getBlacklist)
+                .map(SettingsTopicsBlacklist::getPrefixed)
+                .ifPresent(topics::addAll);
+
         desiredStateFile.getServices().forEach((name, service) -> {
             if (service instanceof KafkaStreamsService) {
                 topics.add(name);
@@ -310,9 +308,9 @@ public class StateManager {
 
     private void validateTopics(DesiredStateFile desiredStateFile) {
         Optional<Integer> defaultReplication = StateUtil.fetchReplication(desiredStateFile);
-        if (!defaultReplication.isPresent()) {
+        if (defaultReplication.isEmpty()) {
             desiredStateFile.getTopics().forEach((name, details) -> {
-                if (!details.getReplication().isPresent()) {
+                if (details.getReplication().isEmpty()) {
                     throw new ValidationException(String.format("Not set: [replication] in state file definition: topics -> %s", name));
                 }
             });
