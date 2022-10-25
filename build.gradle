@@ -95,6 +95,7 @@ task buildRelease(type: Zip, group: "build") {
 }
 
 sonarqube {
+    skipProject = !providers.environmentVariable("SONAR_TOKEN").isPresent()
     properties {
         property "sonar.projectKey", "joschi_kafka-gitops"
         property "sonar.organization", "joschi"
