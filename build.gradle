@@ -60,8 +60,8 @@ test {
 jacocoTestReport {
     dependsOn test
     reports {
-        xml.enabled = true
-        html.enabled = true
+        xml.required = true
+        html.required = true
         xml.outputLocation.set(file("${buildDir}/reports/jacoco/report.xml"))
     }
 
