@@ -13,13 +13,13 @@ import java.util.Optional;
 
 @FreeBuilder
 @JsonDeserialize(builder = KafkaConnectorDetails.Builder.class)
-public abstract class KafkaConnectorDetails extends AbstractService {
 
-    public abstract List<String> getProduces();
+public interface KafkaConnectorDetails extends AbstractService {
+    List<String> getProduces();
 
-    public abstract List<String> getConsumes();
+    List<String> getConsumes();
 
-    public List<AclDetails.Builder> getAcls(String connectorName, Optional<String> principal, GetAclOptions options) {
+    default List<AclDetails.Builder> getAcls(String connectorName, Optional<String> principal, GetAclOptions options) {
         List<AclDetails.Builder> acls = new ArrayList<>();
         getProduces().forEach(topic -> acls.add(generateWriteACL(topic, principal)));
         getConsumes().forEach(topic -> acls.add(generateReadAcl(topic, principal)));
@@ -35,7 +35,6 @@ public abstract class KafkaConnectorDetails extends AbstractService {
         return acls;
     }
 
-    public static class Builder extends KafkaConnectorDetails_Builder {
-
+    class Builder extends KafkaConnectorDetails_Builder {
     }
 }

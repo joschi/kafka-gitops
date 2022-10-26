@@ -77,7 +77,7 @@ class TestUtils {
                 assert newAcls.size() == 1
             }
             println "Finished seeding kafka cluster"
-        } catch (Exception ex) {
+        } catch (Exception ignored) {
             println "Error seeding up kafka cluster"
         }
     }

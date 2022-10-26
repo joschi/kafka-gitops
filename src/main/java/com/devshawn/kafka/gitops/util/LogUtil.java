@@ -12,7 +12,9 @@ import com.devshawn.kafka.gitops.exception.KafkaExecutionException;
 import com.devshawn.kafka.gitops.exception.WritePlanOutputException;
 import picocli.CommandLine;
 
-public class LogUtil {
+public final class LogUtil {
+    private LogUtil() {
+    }
 
     public static void printPlan(DesiredPlan desiredPlan, boolean deleteDisabled, boolean skipAclsDisabled) {
         PlanOverview planOverview = PlanUtil.getOverview(desiredPlan, deleteDisabled, skipAclsDisabled);

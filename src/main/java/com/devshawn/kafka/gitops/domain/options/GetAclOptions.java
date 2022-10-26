@@ -9,7 +9,7 @@ public interface GetAclOptions {
 
     String getServiceName();
 
-    Boolean getDescribeAclEnabled();
+    boolean getDescribeAclEnabled();
 
     class Builder extends GetAclOptions_Builder {
     }

@@ -23,7 +23,7 @@ import java.util.List;
 
 public class ParserService {
 
-    private static Logger log = LoggerFactory.getLogger(ParserService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ParserService.class);
 
     private final ObjectMapper objectMapper;
 
@@ -58,7 +58,7 @@ public class ParserService {
     }
 
     public DesiredStateFile parseStateFile(File stateFile) {
-        log.info("Parsing desired state file...");
+        LOG.info("Parsing desired state file...");
 
         try {
             return objectMapper.readValue(stateFile, DesiredStateFile.class);

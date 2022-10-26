@@ -14,23 +14,23 @@ import java.util.Optional;
 
 @FreeBuilder
 @JsonDeserialize(builder = CustomAclDetails.Builder.class)
-public abstract class CustomAclDetails {
+public interface CustomAclDetails {
 
-    public abstract String getName();
+    String getName();
 
-    public abstract String getType();
+    String getType();
 
-    public abstract String getPattern();
+    String getPattern();
 
-    public abstract Optional<String> getPrincipal();
+    Optional<String> getPrincipal();
 
-    public abstract String getHost();
+    String getHost();
 
-    public abstract String getOperation();
+    String getOperation();
 
-    public abstract String getPermission();
+    String getPermission();
 
-    public void validate() {
+    default void validate() {
         validateEnum(ResourceType.class, getType(), "type");
         validateEnum(PatternType.class, getPattern(), "pattern");
         validateEnum(AclOperation.class, getOperation(), "operation");
@@ -38,13 +38,16 @@ public abstract class CustomAclDetails {
     }
 
     private <E extends Enum<E>> void validateEnum(Class<E> enumData, String value, String field) {
-        List<String> allowedValues = Arrays.stream(enumData.getEnumConstants()).map(Enum::name).filter(it -> !it.equals("ANY") && !it.equals("UNKNOWN")).toList();
+        List<String> allowedValues = Arrays.stream(enumData.getEnumConstants())
+                .map(Enum::name)
+                .filter(it -> !it.equals("ANY") && !it.equals("UNKNOWN"))
+                .toList();
         if (!allowedValues.contains(value)) {
             throw new InvalidAclDefinitionException(field, value, allowedValues);
         }
     }
 
-    public static class Builder extends CustomAclDetails_Builder {
+    class Builder extends CustomAclDetails_Builder {
         public Builder() {
             setPermission(AclPermissionType.ALLOW.name());
             setHost("*");

@@ -3,20 +3,25 @@ package com.devshawn.kafka.gitops.config;
 import com.devshawn.kafka.gitops.exception.MissingConfigurationException;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.config.SaslConfigs;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class KafkaGitopsConfigLoader {
 
-    private static org.slf4j.Logger log = LoggerFactory.getLogger(KafkaGitopsConfigLoader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(KafkaGitopsConfigLoader.class);
+
+    private KafkaGitopsConfigLoader() {
+    }
 
     public static KafkaGitopsConfig load() {
         return load(null);
@@ -38,31 +43,31 @@ public class KafkaGitopsConfigLoader {
             properties.load(inputStream);
             properties.forEach( (k, v) -> builder.putConfig(k.toString(), v));
         } catch (IOException ioExc) {
-            log.error("Failed to load config from " + configFile, ioExc);
+            LOG.error("Failed to load config from " + configFile, ioExc);
         }
     }
 
     private static void setConfigFromEnvironment(KafkaGitopsConfig.Builder builder) {
         Map<String, Object> config = new HashMap<>();
-        AtomicReference<String> username = new AtomicReference<>();
-        AtomicReference<String> password = new AtomicReference<>();
+        String username = null;
+        String password = null;
 
-        Map<String, String> environment = System.getenv();
-
-        environment.forEach((key, value) -> {
+        for (Map.Entry<String, String> entry : System.getenv().entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
             if (key.equals("KAFKA_SASL_JAAS_USERNAME")) {
-                username.set(value);
+                username = value;
             } else if (key.equals("KAFKA_SASL_JAAS_PASSWORD")) {
-                password.set(value);
+                password = value;
             } else if (key.startsWith("KAFKA_")) {
-                String newKey = key.substring(6).replace("_", ".").toLowerCase();
+                String newKey = key.substring(6).replace("_", ".").toLowerCase(Locale.ROOT);
                 config.put(newKey, value);
             }
-        });
+        }
 
-        handleAuthentication(username, password, config);
+        config.putAll(handleAuthentication(config.get(SaslConfigs.SASL_MECHANISM), username, password));
 
-        log.info("Kafka Config: {}", sanitizeConfiguration(config));
+        LOG.info("Kafka Config: {}", sanitizeConfiguration(config));
 
         builder.putAllConfig(config);
         handleDefaultConfig(builder);
@@ -89,12 +94,10 @@ public class KafkaGitopsConfigLoader {
         }
     }
 
-    private static void handleAuthentication(AtomicReference<String> username, AtomicReference<String> password, Map<String, Object> config) {
-        if (username.get() != null && password.get() != null) {
+    private static Map<String, Object> handleAuthentication(Object saslMechanism, String username, String password) {
+        if (username != null && password != null) {
             // Do we need the Plain or SCRAM module?
-            String loginModule = null;
-            Object saslMechanism = config.get(SaslConfigs.SASL_MECHANISM);
-
+            String loginModule;
             if ("PLAIN".equals(saslMechanism)) {
                 loginModule = "org.apache.kafka.common.security.plain.PlainLoginModule";
             } else if ("SCRAM-SHA-256".equals(saslMechanism) || "SCRAM-SHA-512".equals(saslMechanism)) {
@@ -104,19 +107,18 @@ public class KafkaGitopsConfigLoader {
             }
 
             String value = String.format("%s required username=\"%s\" password=\"%s\";",
-                    loginModule, escape(username.get()), escape(password.get()));
-            config.put(SaslConfigs.SASL_JAAS_CONFIG, value);
-        } else if (username.get() != null) {
+                    loginModule, escape(username), escape(password));
+            return Map.of(SaslConfigs.SASL_JAAS_CONFIG, value);
+        } else if (username != null) {
             throw new MissingConfigurationException("KAFKA_SASL_JAAS_PASSWORD");
-        } else if (password.get() != null) {
+        } else if (password != null) {
             throw new MissingConfigurationException("KAFKA_SASL_JAAS_USERNAME");
         }
+
+        return Collections.emptyMap();
     }
 
     private static String escape(String value) {
-        if (value != null) {
-            return value.replace("\"", "\\\"");
-        }
-        return null;
+        return value.replace("\"", "\\\"");
     }
 }

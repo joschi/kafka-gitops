@@ -32,8 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 public class PlanManager {
-
-    private static org.slf4j.Logger log = LoggerFactory.getLogger(PlanManager.class);
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(PlanManager.class);
 
     private final ManagerConfig managerConfig;
     private final KafkaService kafkaService;
@@ -56,10 +55,10 @@ public class PlanManager {
                     .setTopicDetails(value);
 
             if (!topicNames.contains(key)) {
-                log.info("[PLAN] Topic {} does not exist; it will be created.", key);
+                LOG.info("[PLAN] Topic {} does not exist; it will be created.", key);
                 topicPlan.setAction(PlanAction.ADD);
             } else {
-                log.info("[PLAN] Topic {} exists, it will not be created.", key);
+                LOG.info("[PLAN] Topic {} exists, it will not be created.", key);
                 topicPlan.setAction(PlanAction.NO_CHANGE);
                 planTopicConfigurations(key, value, topicConfigs.get(key), topicPlan);
             }
@@ -70,7 +69,7 @@ public class PlanManager {
         topics.forEach(currentTopic -> {
             boolean shouldIgnore = desiredState.getPrefixedTopicsToIgnore().stream().anyMatch(it -> currentTopic.name().startsWith(it));
             if (shouldIgnore) {
-                log.info("[PLAN] Ignoring topic {} due to prefix", currentTopic.name());
+                LOG.info("[PLAN] Ignoring topic {} due to prefix", currentTopic.name());
                 return;
             }
 
@@ -127,7 +126,7 @@ public class PlanManager {
         });
 
         configPlans.forEach((key, plan) -> {
-            log.info("[PLAN] Topic {} | [{}] {}", topicName, plan.getAction(), plan.getKey());
+            LOG.info("[PLAN] Topic {} | [{}] {}", topicName, plan.getAction(), plan.getKey());
             topicPlan.addTopicConfigPlans(plan);
         });
     }
@@ -180,31 +179,31 @@ public class PlanManager {
     }
 
     public DesiredPlan readPlanFromFile() {
-        if (managerConfig.getPlanFile().isEmpty()) {
-            return null;
-        }
-
-        try {
-            return objectMapper.readValue(managerConfig.getPlanFile().get(), DesiredPlan.class);
-        } catch (FileNotFoundException ex) {
-            throw new ReadPlanInputException("The specified plan file could not be found.");
-        } catch (IOException ex) {
-            throw new ReadPlanInputException();
-        }
+        return managerConfig.getPlanFile().map(file -> {
+            try {
+                return objectMapper.readValue(file, DesiredPlan.class);
+            } catch (FileNotFoundException ex) {
+                throw new ReadPlanInputException("The specified plan file could not be found.");
+            } catch (IOException ex) {
+                throw new ReadPlanInputException();
+            }
+        }).orElse(null);
     }
 
     public void writePlanToFile(DesiredPlan desiredPlan) {
-        if (managerConfig.getPlanFile().isPresent()) {
+        managerConfig.getPlanFile().ifPresent(planFile -> {
             try {
-                managerConfig.getPlanFile().get().createNewFile();
+                if (!planFile.createNewFile()) {
+                    LOG.info("Overwriting existing plan file at {}", planFile);
+                }
                 DesiredPlan outputPlan = managerConfig.isIncludeUnchangedEnabled() ? desiredPlan : desiredPlan.toChangesOnlyPlan();
-                FileWriter writer = new FileWriter(managerConfig.getPlanFile().get());
-                writer.write(objectMapper.writeValueAsString(outputPlan));
-                writer.close();
+                try(FileWriter writer = new FileWriter(planFile)) {
+                    writer.write(objectMapper.writeValueAsString(outputPlan));
+                }
             } catch (IOException ex) {
                 throw new WritePlanOutputException(ex.getMessage());
             }
-        }
+        });
     }
 
     private Map<String, List<ConfigEntry>> fetchTopicConfigurations(List<String> topicNames) {

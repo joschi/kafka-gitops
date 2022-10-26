@@ -107,7 +107,7 @@ class PlanCommandIntegrationSpec extends Specification {
         CommandLine cmd = new CommandLine(mainCommand)
 
         when:
-        int exitCode
+        int exitCode = -1
         if (deleteDisabled) {
             exitCode = cmd.execute("-f", file, "--no-delete", "plan", "-o", planOutputFile)
         } else {

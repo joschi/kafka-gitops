@@ -11,7 +11,7 @@ import java.util.List;
 
 public class ConfluentCloudService {
 
-    private static org.slf4j.Logger log = LoggerFactory.getLogger(ConfluentCloudService.class);
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(ConfluentCloudService.class);
 
     private final ObjectMapper objectMapper;
     private static final String ccloudExecutable;
@@ -21,19 +21,19 @@ public class ConfluentCloudService {
     }
 
     public List<ServiceAccount> getServiceAccounts() {
-        log.info("Fetching service account list from Confluent Cloud via ccloud tool.");
+        LOG.info("Fetching service account list from Confluent Cloud via ccloud tool.");
         try {
             String result = execCmd(new String[]{ccloudExecutable, "service-account", "list", "-o", "json"});
-            return objectMapper.readValue(result, new TypeReference<List<ServiceAccount>>() {
+            return objectMapper.readValue(result, new TypeReference<>() {
             });
         } catch (IOException ex) {
-            log.info(ex.getMessage());
+            LOG.info(ex.getMessage());
             throw new ConfluentCloudException("There was an error listing Confluent Cloud service accounts. Are you logged in?");
         }
     }
 
     public ServiceAccount createServiceAccount(String name, boolean isUser) {
-        log.info("Creating service account {} in Confluent Cloud via ccloud tool.", name);
+        LOG.info("Creating service account {} in Confluent Cloud via ccloud tool.", name);
         try {
             String serviceName = isUser ? String.format("user-%s", name) : name;
             String description = isUser ? String.format("User: %s", name) : String.format("Service account: %s", name);
@@ -51,6 +51,6 @@ public class ConfluentCloudService {
 
     static {
         ccloudExecutable = System.getenv("CCLOUD_EXECUTABLE_PATH") != null ? System.getenv("CCLOUD_EXECUTABLE_PATH") : "ccloud";
-        log.info("Using ccloud executable at: {}", ccloudExecutable);
+        LOG.info("Using ccloud executable at: {}", ccloudExecutable);
     }
 }
