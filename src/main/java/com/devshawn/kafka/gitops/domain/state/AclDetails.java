@@ -12,23 +12,23 @@ import org.inferred.freebuilder.FreeBuilder;
 
 @FreeBuilder
 @JsonDeserialize(builder = AclDetails.Builder.class)
-public abstract class AclDetails {
+public interface AclDetails {
 
-    public abstract String getName();
+    String getName();
 
-    public abstract String getType();
+    String getType();
 
-    public abstract String getPattern();
+    String getPattern();
 
-    public abstract String getPrincipal();
+    String getPrincipal();
 
-    public abstract String getHost();
+    String getHost();
 
-    public abstract String getOperation();
+    String getOperation();
 
-    public abstract String getPermission();
+    String getPermission();
 
-    public static AclDetails fromAclBinding(AclBinding aclBinding) {
+    static AclDetails fromAclBinding(AclBinding aclBinding) {
         AclDetails.Builder aclDetails = new AclDetails.Builder()
                 .setName(aclBinding.pattern().name())
                 .setType(aclBinding.pattern().resourceType().name())
@@ -40,7 +40,7 @@ public abstract class AclDetails {
         return aclDetails.build();
     }
 
-    public static AclDetails.Builder fromCustomAclDetails(CustomAclDetails customAclDetails) {
+    static AclDetails.Builder fromCustomAclDetails(CustomAclDetails customAclDetails) {
         return new AclDetails.Builder()
                 .setName(customAclDetails.getName())
                 .setType(customAclDetails.getType())
@@ -50,27 +50,24 @@ public abstract class AclDetails {
                 .setPermission(customAclDetails.getPermission());
     }
 
-    public boolean equalsAclBinding(AclBinding aclBinding) {
-        if (aclBinding.pattern().name().equals(getName())
+    default boolean equalsAclBinding(AclBinding aclBinding) {
+        return aclBinding.pattern().name().equals(getName())
                 && aclBinding.pattern().patternType().name().equals(getPattern())
                 && aclBinding.pattern().resourceType().name().equals(getType())
                 && aclBinding.entry().principal().equals(getPrincipal())
                 && aclBinding.entry().host().equals(getHost())
                 && aclBinding.entry().permissionType().name().equals(getPermission())
-                && aclBinding.entry().operation().name().equals(getOperation())) {
-            return true;
-        }
-        return false;
+                && aclBinding.entry().operation().name().equals(getOperation());
     }
 
-    public AclBinding toAclBinding() {
+    default AclBinding toAclBinding() {
         return new AclBinding(
                 new ResourcePattern(ResourceType.valueOf(getType()), getName(), PatternType.valueOf(getPattern())),
                 new AccessControlEntry(getPrincipal(), getHost(), AclOperation.valueOf(getOperation()), AclPermissionType.valueOf(getPermission()))
         );
     }
 
-    public static class Builder extends AclDetails_Builder {
+    class Builder extends AclDetails_Builder {
         public Builder() {
             setPermission(AclPermissionType.ALLOW.name());
             setHost("*");

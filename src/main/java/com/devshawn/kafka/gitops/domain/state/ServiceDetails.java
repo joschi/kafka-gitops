@@ -15,7 +15,7 @@ import java.util.List;
         @JsonSubTypes.Type(value = KafkaStreamsService.class, name = "kafka-streams")
 })
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public abstract class ServiceDetails extends AbstractService {
+public abstract class ServiceDetails implements AbstractService {
 
     public String type;
 

@@ -6,7 +6,6 @@ import com.devshawn.kafka.gitops.exception.KafkaExecutionException;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AlterConfigOp;
 import org.apache.kafka.clients.admin.Config;
-import org.apache.kafka.clients.admin.KafkaAdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.admin.TopicListing;
 import org.apache.kafka.common.KafkaException;
@@ -65,7 +64,8 @@ public class KafkaService {
 
     public void createTopic(String topicName, TopicDetails topicDetails) {
         try (final AdminClient adminClient = buildAdminClient()) {
-            NewTopic newTopic = new NewTopic(topicName, topicDetails.getPartitions(), topicDetails.getReplication().get().shortValue());
+            short replicationFactor = topicDetails.getReplication().orElseThrow().shortValue();
+            NewTopic newTopic = new NewTopic(topicName, topicDetails.getPartitions(), replicationFactor);
             newTopic.configs(topicDetails.getConfigs());
             adminClient.createTopics(Collections.singletonList(newTopic)).all().get();
         } catch (InterruptedException | ExecutionException | NoSuchElementException ex) {
@@ -109,7 +109,7 @@ public class KafkaService {
 
     private AdminClient buildAdminClient() {
         try {
-            return KafkaAdminClient.create(config.getConfig());
+            return AdminClient.create(config.getConfig());
         } catch (KafkaException ex) {
             throw new KafkaExecutionException("Error thrown when creating Kafka admin client", ex.getCause().getMessage());
         }

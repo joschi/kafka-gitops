@@ -12,9 +12,11 @@ import com.devshawn.kafka.gitops.domain.state.AclDetails;
 import com.devshawn.kafka.gitops.domain.state.CustomAclDetails;
 import com.devshawn.kafka.gitops.domain.state.DesiredState;
 import com.devshawn.kafka.gitops.domain.state.DesiredStateFile;
+import com.devshawn.kafka.gitops.domain.state.ServiceDetails;
 import com.devshawn.kafka.gitops.domain.state.TopicDetails;
 import com.devshawn.kafka.gitops.domain.state.service.KafkaStreamsService;
 import com.devshawn.kafka.gitops.domain.state.settings.Settings;
+import com.devshawn.kafka.gitops.domain.state.settings.SettingsCCloud;
 import com.devshawn.kafka.gitops.domain.state.settings.SettingsTopics;
 import com.devshawn.kafka.gitops.domain.state.settings.SettingsTopicsBlacklist;
 import com.devshawn.kafka.gitops.exception.ConfluentCloudException;
@@ -41,28 +43,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class StateManager {
 
     private final ManagerConfig managerConfig;
-    private final ObjectMapper objectMapper;
     private final ParserService parserService;
-    private final KafkaService kafkaService;
     private final RoleService roleService;
     private final ConfluentCloudService confluentCloudService;
 
-    private PlanManager planManager;
-    private ApplyManager applyManager;
+    private final PlanManager planManager;
+    private final ApplyManager applyManager;
 
     private boolean describeAclEnabled = false;
 
     public StateManager(ManagerConfig managerConfig, ParserService parserService) {
         initializeLogger(managerConfig.isVerboseRequested());
-        this.managerConfig = managerConfig;
-        this.objectMapper = initializeObjectMapper();
+        ObjectMapper objectMapper = initializeObjectMapper();
         KafkaGitopsConfig config = KafkaGitopsConfigLoader.load();
-        this.kafkaService = new KafkaService(config);
+        KafkaService kafkaService = new KafkaService(config);
+
+        this.managerConfig = managerConfig;
         this.parserService = parserService;
         this.roleService = new RoleService();
         this.confluentCloudService = new ConfluentCloudService(objectMapper);
@@ -133,8 +133,8 @@ public class StateManager {
     private void createServiceAccount(String name, List<ServiceAccount> serviceAccounts, AtomicInteger count, boolean isUser) {
         String fullName = isUser ? String.format("user-%s", name) : name;
         if (serviceAccounts.stream().noneMatch(it -> it.getName().equals(fullName))) {
-            confluentCloudService.createServiceAccount(name, isUser);
-            LogUtil.printSimpleSuccess(String.format("Successfully created service account: %s", fullName));
+            ServiceAccount serviceAccount = confluentCloudService.createServiceAccount(name, isUser);
+            LogUtil.printSimpleSuccess(String.format("Successfully created service account: %s", serviceAccount.getName()));
             count.getAndIncrement();
         }
     }
@@ -172,57 +172,70 @@ public class StateManager {
     private void generateConfluentCloudServiceAcls(DesiredState.Builder desiredState, DesiredStateFile desiredStateFile) {
         List<ServiceAccount> serviceAccounts = confluentCloudService.getServiceAccounts();
         desiredStateFile.getServices().forEach((name, service) -> {
-            AtomicReference<Integer> index = new AtomicReference<>(0);
+            String serviceAccountId = serviceAccounts.stream()
+                    .filter(it -> it.getName().equals(name))
+                    .findFirst()
+                    .orElseThrow(() -> new ServiceAccountNotFoundException(name))
+                    .getId();
 
-            Optional<ServiceAccount> serviceAccount = serviceAccounts.stream().filter(it -> it.getName().equals(name)).findFirst();
-            String serviceAccountId = serviceAccount.orElseThrow(() -> new ServiceAccountNotFoundException(name)).getId();
-
-            service.getAcls(buildGetAclOptions(name)).forEach(aclDetails -> {
-                aclDetails.setPrincipal(String.format("User:%s", serviceAccountId));
-                desiredState.putAcls(String.format("%s-%s", name, index.getAndSet(index.get() + 1)), aclDetails.build());
-            });
+            AtomicInteger index = new AtomicInteger();
+            for (AclDetails.Builder builder : service.getAcls(buildGetAclOptions(name))) {
+                builder.setPrincipal(principal(serviceAccountId));
+                desiredState.putAcls(acl(name, index), builder.build());
+            }
 
             if (desiredStateFile.getCustomServiceAcls().containsKey(name)) {
                 Map<String, CustomAclDetails> customAcls = desiredStateFile.getCustomServiceAcls().get(name);
                 customAcls.forEach((aclName, customAcl) -> {
                     AclDetails.Builder aclDetails = AclDetails.fromCustomAclDetails(customAcl);
-                    aclDetails.setPrincipal(String.format("User:%s", serviceAccountId));
-                    desiredState.putAcls(String.format("%s-%s", name, index.getAndSet(index.get() + 1)), aclDetails.build());
+                    aclDetails.setPrincipal(principal(serviceAccountId));
+                    desiredState.putAcls(acl(name, index), aclDetails.build());
                 });
             }
         });
     }
 
+    private static String acl(String name, AtomicInteger index) {
+        return String.format("%s-%s", name, index.getAndIncrement());
+    }
+
+    private static String principal(String serviceAccountId) {
+        return String.format("User:%s", serviceAccountId);
+    }
+
     private void generateConfluentCloudUserAcls(DesiredState.Builder desiredState, DesiredStateFile desiredStateFile) {
         List<ServiceAccount> serviceAccounts = confluentCloudService.getServiceAccounts();
         desiredStateFile.getUsers().forEach((name, user) -> {
-            AtomicReference<Integer> index = new AtomicReference<>(0);
+            AtomicInteger index = new AtomicInteger();
             String serviceAccountName = String.format("user-%s", name);
 
             Optional<ServiceAccount> serviceAccount = serviceAccounts.stream().filter(it -> it.getName().equals(serviceAccountName)).findFirst();
             String serviceAccountId = serviceAccount.orElseThrow(() -> new ServiceAccountNotFoundException(serviceAccountName)).getId();
 
             user.getRoles().forEach(role -> {
-                List<AclDetails.Builder> acls = roleService.getAcls(role, String.format("User:%s", serviceAccountId));
-                acls.forEach(acl -> desiredState.putAcls(String.format("%s-%s", name, index.getAndSet(index.get() + 1)), acl.build()));
+                List<AclDetails.Builder> acls = roleService.getAcls(role, principal(serviceAccountId));
+                acls.forEach(acl -> desiredState.putAcls(acl(name, index), acl.build()));
             });
 
             if (desiredStateFile.getCustomUserAcls().containsKey(name)) {
                 Map<String, CustomAclDetails> customAcls = desiredStateFile.getCustomUserAcls().get(name);
                 customAcls.forEach((aclName, customAcl) -> {
                     AclDetails.Builder aclDetails = AclDetails.fromCustomAclDetails(customAcl);
-                    aclDetails.setPrincipal(String.format("User:%s", serviceAccountId));
-                    desiredState.putAcls(String.format("%s-%s", name, index.getAndSet(index.get() + 1)), aclDetails.build());
+                    aclDetails.setPrincipal(principal(serviceAccountId));
+                    desiredState.putAcls(acl(name, index), aclDetails.build());
                 });
             }
         });
     }
 
     private void generateServiceAcls(DesiredState.Builder desiredState, DesiredStateFile desiredStateFile) {
-        desiredStateFile.getServices().forEach((name, service) -> {
-            AtomicReference<Integer> index = new AtomicReference<>(0);
+        for (Map.Entry<String, ServiceDetails> entry : desiredStateFile.getServices().entrySet()) {
+            String name = entry.getKey();
+            ServiceDetails service = entry.getValue();
+            AtomicInteger index = new AtomicInteger();
+
             service.getAcls(buildGetAclOptions(name)).forEach(aclDetails ->
-                    desiredState.putAcls(String.format("%s-%s", name, index.getAndSet(index.get() + 1)), buildAclDetails(name, aclDetails)));
+                    desiredState.putAcls(acl(name, index), buildAclDetails(name, aclDetails)));
 
             if (desiredStateFile.getCustomServiceAcls().containsKey(name)) {
                 Map<String, CustomAclDetails> customAcls = desiredStateFile.getCustomServiceAcls().get(name);
@@ -230,29 +243,31 @@ public class StateManager {
                     AclDetails.Builder aclDetails = AclDetails.fromCustomAclDetails(customAcl);
                     aclDetails.setPrincipal(customAcl.getPrincipal().orElseThrow(() ->
                             new MissingConfigurationException(String.format("Missing principal for custom service ACL %s", aclName))));
-                    desiredState.putAcls(String.format("%s-%s", name, index.getAndSet(index.get() + 1)), aclDetails.build());
+                    desiredState.putAcls(acl(name, index), aclDetails.build());
                 });
             }
-        });
+        }
     }
 
     private void generateUserAcls(DesiredState.Builder desiredState, DesiredStateFile desiredStateFile) {
         desiredStateFile.getUsers().forEach((name, user) -> {
-            AtomicReference<Integer> index = new AtomicReference<>(0);
+            AtomicInteger index = new AtomicInteger();
             String userPrincipal = user.getPrincipal()
                     .orElseThrow(() -> new MissingConfigurationException(String.format("Missing principal for user %s", name)));
 
-            user.getRoles().forEach(role -> {
+            for (String role : user.getRoles()) {
                 List<AclDetails.Builder> acls = roleService.getAcls(role, userPrincipal);
-                acls.forEach(acl -> desiredState.putAcls(String.format("%s-%s", name, index.getAndSet(index.get() + 1)), acl.build()));
-            });
+                for (AclDetails.Builder acl : acls) {
+                    desiredState.putAcls(acl(name, index), acl.build());
+                }
+            }
 
             if (desiredStateFile.getCustomUserAcls().containsKey(name)) {
                 Map<String, CustomAclDetails> customAcls = desiredStateFile.getCustomUserAcls().get(name);
                 customAcls.forEach((aclName, customAcl) -> {
                     AclDetails.Builder aclDetails = AclDetails.fromCustomAclDetails(customAcl);
                     aclDetails.setPrincipal(customAcl.getPrincipal().orElse(userPrincipal));
-                    desiredState.putAcls(String.format("%s-%s", name, index.getAndSet(index.get() + 1)), aclDetails.build());
+                    desiredState.putAcls(acl(name, index), aclDetails.build());
                 });
             }
         });
@@ -322,22 +337,21 @@ public class StateManager {
     }
 
     private boolean isConfluentCloudEnabled(DesiredStateFile desiredStateFile) {
-        if (desiredStateFile.getSettings().isPresent() && desiredStateFile.getSettings().get().getCcloud().isPresent()) {
-            return desiredStateFile.getSettings().get().getCcloud().get().isEnabled();
-        }
-        return false;
+        return desiredStateFile.getSettings()
+                .flatMap(Settings::getCcloud)
+                .map(SettingsCCloud::isEnabled)
+                .orElse(false);
     }
 
-    private ObjectMapper initializeObjectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        objectMapper.registerModule(new Jdk8Module());
-        return objectMapper;
+    private static ObjectMapper initializeObjectMapper() {
+        return new ObjectMapper()
+        .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES)
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .registerModule(new Jdk8Module());
     }
 
-    private void initializeLogger(boolean verbose) {
-        Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+    private static void initializeLogger(boolean verbose) {
+        Logger root = (Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
         Logger kafka = (Logger) LoggerFactory.getLogger("org.apache.kafka");
         if (verbose) {
             root.setLevel(Level.INFO);
