@@ -28,7 +28,7 @@ dependencies {
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.4.2'
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.4"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.13.4"
-    implementation 'info.picocli:picocli:4.6.3'
+    implementation 'info.picocli:picocli:4.7.0'
 
     implementation 'org.slf4j:slf4j-api:2.0.3'
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.4.4'
