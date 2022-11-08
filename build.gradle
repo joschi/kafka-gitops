@@ -26,7 +26,7 @@ java {
 dependencies {
     implementation group: 'org.apache.kafka', name: 'kafka-clients', version: '3.3.1'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.14.0'
-    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.4"
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.14.0"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.13.4"
     implementation 'info.picocli:picocli:4.7.0'
 
