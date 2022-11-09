@@ -18,7 +18,7 @@ import com.devshawn.kafka.gitops.domain.state.service.KafkaStreamsService;
 import com.devshawn.kafka.gitops.domain.state.settings.Settings;
 import com.devshawn.kafka.gitops.domain.state.settings.SettingsCCloud;
 import com.devshawn.kafka.gitops.domain.state.settings.SettingsTopics;
-import com.devshawn.kafka.gitops.domain.state.settings.SettingsTopicsBlacklist;
+import com.devshawn.kafka.gitops.domain.state.settings.SettingsTopicsList;
 import com.devshawn.kafka.gitops.exception.ConfluentCloudException;
 import com.devshawn.kafka.gitops.exception.InvalidAclDefinitionException;
 import com.devshawn.kafka.gitops.exception.MissingConfigurationException;
@@ -39,6 +39,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -153,7 +154,8 @@ public class StateManager {
     private DesiredState getDesiredState() {
         DesiredStateFile desiredStateFile = getAndValidateStateFile();
         DesiredState.Builder desiredState = new DesiredState.Builder()
-                .addAllPrefixedTopicsToIgnore(getPrefixedTopicsToIgnore(desiredStateFile));
+                .addAllPrefixedTopicsToIgnore(getPrefixedTopicsToIgnore(desiredStateFile))
+                .addAllPrefixedTopicsToAccept(getPrefixedTopicsToAccept(desiredStateFile));
 
         generateTopicsState(desiredState, desiredStateFile);
 
@@ -297,7 +299,7 @@ public class StateManager {
         desiredStateFile.getSettings()
                 .flatMap(Settings::getTopics)
                 .flatMap(SettingsTopics::getBlacklist)
-                .map(SettingsTopicsBlacklist::getPrefixed)
+                .map(SettingsTopicsList::getPrefixed)
                 .ifPresent(topics::addAll);
 
         desiredStateFile.getServices().forEach((name, service) -> {
@@ -306,6 +308,16 @@ public class StateManager {
             }
         });
         return topics;
+    }
+
+    private List<String> getPrefixedTopicsToAccept(DesiredStateFile desiredStateFile) {
+        return desiredStateFile.getSettings()
+                .flatMap(Settings::getTopics)
+                .flatMap(SettingsTopics::getWhitelist)
+                .map(SettingsTopicsList::getPrefixed)
+                .stream()
+                .flatMap(Collection::stream)
+                .toList();
     }
 
     private GetAclOptions buildGetAclOptions(String serviceName) {

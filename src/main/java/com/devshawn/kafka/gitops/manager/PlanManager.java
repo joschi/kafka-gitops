@@ -66,14 +66,20 @@ public class PlanManager {
             desiredPlan.addTopicPlans(topicPlan.build());
         });
 
-        topics.forEach(currentTopic -> {
-            boolean shouldIgnore = desiredState.getPrefixedTopicsToIgnore().stream().anyMatch(it -> currentTopic.name().startsWith(it));
-            if (shouldIgnore) {
-                LOG.info("[PLAN] Ignoring topic {} due to prefix", currentTopic.name());
-                return;
+        for (TopicListing currentTopic : topics) {
+            boolean acceptTopic = desiredState.getPrefixedTopicsToAccept().stream().anyMatch(it -> currentTopic.name().startsWith(it));
+            if (!desiredState.getPrefixedTopicsToAccept().isEmpty() && !acceptTopic) {
+                LOG.info("[PLAN] Ignoring topic {} due to missing prefix (whitelist)", currentTopic.name());
+                continue;
             }
 
-            if (!managerConfig.isDeleteDisabled() && desiredState.getTopics().getOrDefault(currentTopic.name(), null) == null) {
+            boolean ignoreTopic = desiredState.getPrefixedTopicsToIgnore().stream().anyMatch(it -> currentTopic.name().startsWith(it));
+            if (ignoreTopic) {
+                LOG.info("[PLAN] Ignoring topic {} due to prefix (blacklist)", currentTopic.name());
+                continue;
+            }
+
+            if (!managerConfig.isDeleteDisabled() && !desiredState.getTopics().containsKey(currentTopic.name())) {
                 TopicPlan topicPlan = new TopicPlan.Builder()
                         .setName(currentTopic.name())
                         .setAction(PlanAction.REMOVE)
@@ -81,7 +87,7 @@ public class PlanManager {
 
                 desiredPlan.addTopicPlans(topicPlan);
             }
-        });
+        }
     }
 
     private void planTopicConfigurations(String topicName, TopicDetails topicDetails, List<ConfigEntry> configs, TopicPlan.Builder topicPlan) {
