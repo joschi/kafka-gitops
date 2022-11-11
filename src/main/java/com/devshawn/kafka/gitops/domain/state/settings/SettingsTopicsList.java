@@ -6,11 +6,11 @@ import org.inferred.freebuilder.FreeBuilder;
 import java.util.List;
 
 @FreeBuilder
-@JsonDeserialize(builder = SettingsTopicsBlacklist.Builder.class)
-public interface SettingsTopicsBlacklist {
+@JsonDeserialize(builder = SettingsTopicsList.Builder.class)
+public interface SettingsTopicsList {
 
     List<String> getPrefixed();
 
-    class Builder extends SettingsTopicsBlacklist_Builder {
+    class Builder extends SettingsTopicsList_Builder {
     }
 }

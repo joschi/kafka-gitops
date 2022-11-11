@@ -23,6 +23,11 @@ The desired state file consists of:
 - **topics** [Optional]: 
     - **defaults** [Optional]: Specify topic defaults so you don't need to specify them for every topic in the state file. Currently, only replication is supported. 
     - **blacklist** [Optional]: Add a prefixed topic blacklist for ignoring specific topics when using `kafka-gitops`. This allows topics to be ignored from being deleted if they are not defined in the desired state file.
+    - **whitelist** [Optional]: Add a prefixed topic whitelist for exclusively handling specific topics when using `kafka-gitops`. This allows topics to be exclusively handled and topics not on the list are being ignored, even if they are not defined in the desired state file.
+
+?> `topics.blacklist` and `topics.whitelist` are _not mutually exclusive_ can be used together to whitelist specific topic prefixes and blacklist individual "sub-topics".
+
+?> The blacklist takes precedence over the whitelist, so if a topic name is matched by both, it will be ignored and not deleted if it was not defined in the desired state file.
 
 **Example**:
 ```yaml
@@ -35,6 +40,10 @@ settings:
     blacklist:
       prefixed:
         - _confluent
+        - my-topics-excluded
+    whitelist:
+      prefixed:
+        - my-topics
 ```
 
 ## Topics
