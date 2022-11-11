@@ -1,5 +1,6 @@
 package com.devshawn.kafka.gitops.domain.state.settings;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.inferred.freebuilder.FreeBuilder;
 
@@ -11,9 +12,11 @@ public interface SettingsTopics {
 
     Optional<SettingsTopicsDefaults> getDefaults();
 
-    Optional<SettingsTopicsList> getBlacklist();
+    @JsonProperty("exclude")
+    Optional<SettingsTopicsList> getExcludeList();
 
-    Optional<SettingsTopicsList> getWhitelist();
+    @JsonProperty("include")
+    Optional<SettingsTopicsList> getIncludeList();
 
     class Builder extends SettingsTopics_Builder {
     }

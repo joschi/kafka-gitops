@@ -69,13 +69,13 @@ public class PlanManager {
         for (TopicListing currentTopic : topics) {
             boolean acceptTopic = desiredState.getPrefixedTopicsToAccept().stream().anyMatch(it -> currentTopic.name().startsWith(it));
             if (!desiredState.getPrefixedTopicsToAccept().isEmpty() && !acceptTopic) {
-                LOG.info("[PLAN] Ignoring topic {} due to missing prefix (whitelist)", currentTopic.name());
+                LOG.info("[PLAN] Ignoring non-included topic {} due to prefix", currentTopic.name());
                 continue;
             }
 
             boolean ignoreTopic = desiredState.getPrefixedTopicsToIgnore().stream().anyMatch(it -> currentTopic.name().startsWith(it));
             if (ignoreTopic) {
-                LOG.info("[PLAN] Ignoring topic {} due to prefix (blacklist)", currentTopic.name());
+                LOG.info("[PLAN] Ignoring excluded topic {} due to prefix", currentTopic.name());
                 continue;
             }
 

@@ -1,6 +1,6 @@
 settings:
   topics:
-    whitelist:
+    include:
       prefixed:
         - test
 
