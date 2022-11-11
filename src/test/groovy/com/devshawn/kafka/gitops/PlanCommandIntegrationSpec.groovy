@@ -97,6 +97,32 @@ class PlanCommandIntegrationSpec extends Specification {
         ]
     }
 
+    void 'test skip-topics flag'() {
+        setup:
+        String planOutputFile = "/tmp/plan.json"
+        String file = TestUtils.getResourceFilePath("plans/${planName}.yaml")
+        MainCommand mainCommand = new MainCommand()
+        CommandLine cmd = new CommandLine(mainCommand)
+
+        when:
+        int exitCode = cmd.execute("-f", file, "--skip-topics", "plan", "-o", planOutputFile)
+
+        then:
+        exitCode == 0
+
+        when:
+        String actualPlan = TestUtils.getFileContent(planOutputFile)
+        String expectedPlan = TestUtils.getResourceFileContent("plans/${planName}-plan.json")
+
+        then:
+        JSONAssert.assertEquals(expectedPlan, actualPlan, true)
+
+        where:
+        planName << [
+                "skip-topics"
+        ]
+    }
+
     void 'test various valid plans with seed - #planName'() {
         setup:
         TestUtils.cleanUpCluster()

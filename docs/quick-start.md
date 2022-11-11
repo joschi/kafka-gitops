@@ -99,6 +99,12 @@ If running against a Kafka cluster with no authorizer configured or if you simpl
 kafka-gitops --skip-acls plan
 ```
 
+Conversely, if you're only interested in managing ACLs you can ignore changes to topics completely. This can be done by running:
+
+```bash
+kafka-gitops --skip-topics plan
+```
+
 ## Apply
 
 To execute a plan against the cluster, we use the apply command.

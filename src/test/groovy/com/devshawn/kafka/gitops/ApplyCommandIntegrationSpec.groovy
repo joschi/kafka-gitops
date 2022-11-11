@@ -87,6 +87,31 @@ class ApplyCommandIntegrationSpec extends Specification {
         ]
     }
 
+    void 'test skip-topics flag'() {
+        setup:
+        ByteArrayOutputStream out = new ByteArrayOutputStream()
+        PrintStream oldOut = System.out
+        System.setOut(new PrintStream(out))
+        String file = TestUtils.getResourceFilePath("plans/${planFile}-plan.json")
+        MainCommand mainCommand = new MainCommand()
+        CommandLine cmd = new CommandLine(mainCommand)
+
+        when:
+        int exitCode = cmd.execute("-f", file, "--skip-topics", "apply", "-p", file)
+
+        then:
+        exitCode == 0
+        out.toString() == TestUtils.getResourceFileContent("plans/${planFile}-apply-output.txt")
+
+        cleanup:
+        System.setOut(oldOut)
+
+        where:
+        planFile << [
+                "skip-topics-apply"
+        ]
+    }
+
     void 'test various valid applies with seed - #planFile #deleteDisabled'() {
         setup:
         TestUtils.seedCluster()
