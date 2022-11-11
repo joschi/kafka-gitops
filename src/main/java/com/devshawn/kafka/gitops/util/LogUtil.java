@@ -16,8 +16,11 @@ public final class LogUtil {
     private LogUtil() {
     }
 
-    public static void printPlan(DesiredPlan desiredPlan, boolean deleteDisabled, boolean skipAclsDisabled) {
-        PlanOverview planOverview = PlanUtil.getOverview(desiredPlan, deleteDisabled, skipAclsDisabled);
+    public static void printPlan(DesiredPlan desiredPlan,
+                                 boolean deleteDisabled,
+                                 boolean skipAclsDisabled,
+                                 boolean skipTopicsDisabled) {
+        PlanOverview planOverview = PlanUtil.getOverview(desiredPlan, deleteDisabled, skipAclsDisabled, skipTopicsDisabled);
 
         printLegend(planOverview);
 
@@ -27,7 +30,7 @@ public final class LogUtil {
         printAclOverview(desiredPlan, deleteDisabled);
         desiredPlan.getAclPlans().forEach(LogUtil::printAclPlan);
 
-        printOverview(desiredPlan, deleteDisabled, skipAclsDisabled);
+        printOverview(desiredPlan, deleteDisabled, skipAclsDisabled, skipTopicsDisabled);
     }
 
     public static void printValidationResult(String message, boolean success) {
@@ -132,8 +135,11 @@ public final class LogUtil {
      * Helpers
      */
 
-    private static void printOverview(DesiredPlan desiredPlan, boolean deleteDisabled, boolean skipAclsDisabled) {
-        PlanOverview planOverview = PlanUtil.getOverview(desiredPlan, deleteDisabled, skipAclsDisabled);
+    private static void printOverview(DesiredPlan desiredPlan,
+                                      boolean deleteDisabled,
+                                      boolean skipAclsDisabled,
+                                      boolean skipTopicsDisabled) {
+        PlanOverview planOverview = PlanUtil.getOverview(desiredPlan, deleteDisabled, skipAclsDisabled, skipTopicsDisabled);
         System.out.printf("%s: %s, %s, %s.%n", bold("Plan"), toCreate(planOverview.getAdd()),
                 toUpdate(planOverview.getUpdate()), toDelete(planOverview.getRemove()));
     }

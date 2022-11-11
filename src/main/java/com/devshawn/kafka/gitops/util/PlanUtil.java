@@ -9,10 +9,16 @@ import java.util.EnumSet;
 
 public class PlanUtil {
 
-    public static PlanOverview getOverview(DesiredPlan desiredPlan, boolean deleteDisabled, boolean skipAclsDisabled) {
+    public static PlanOverview getOverview(DesiredPlan desiredPlan,
+                                           boolean deleteDisabled,
+                                           boolean skipAclsDisabled,
+                                           boolean skipTopicsDisabled) {
         EnumMap<PlanAction, Long> map = getPlanActionMap();
-        desiredPlan.getTopicPlans().forEach(it -> addToMap(map, it.getAction(), deleteDisabled));
-        if(!skipAclsDisabled) {
+        if (!skipTopicsDisabled) {
+            desiredPlan.getTopicPlans().forEach(it -> addToMap(map, it.getAction(), deleteDisabled));
+        }
+
+        if (!skipAclsDisabled) {
             desiredPlan.getAclPlans().forEach(it -> addToMap(map, it.getAction(), deleteDisabled));
         }
         return buildPlanOverview(map);

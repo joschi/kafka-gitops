@@ -34,7 +34,10 @@ public class ApplyCommand implements Callable<Integer> {
             ParserService parserService = new ParserService(parent.getStateFile());
             StateManager stateManager = new StateManager(generateStateManagerConfig(), parserService);
             DesiredPlan desiredPlan = stateManager.apply();
-            LogUtil.printApplyOverview(PlanUtil.getOverview(desiredPlan, parent.isDeleteDisabled(), parent.areAclsDisabled()));
+            LogUtil.printApplyOverview(PlanUtil.getOverview(desiredPlan,
+                    parent.isDeleteDisabled(),
+                    parent.areAclsDisabled(),
+                    parent.areTopicsDisabled()));
             return 0;
         } catch (PlanIsUpToDateException ex) {
             LogUtil.printNoChangesMessage();
@@ -55,6 +58,7 @@ public class ApplyCommand implements Callable<Integer> {
                 .setDeleteDisabled(parent.isDeleteDisabled())
                 .setIncludeUnchangedEnabled(false)
                 .setSkipAclsDisabled(parent.areAclsDisabled())
+                .setSkipTopicsDisabled(parent.areTopicsDisabled())
                 .setNullableConfigFile(parent.getConfigFile())
                 .setStateFile(parent.getStateFile())
                 .setNullablePlanFile(planFile)
