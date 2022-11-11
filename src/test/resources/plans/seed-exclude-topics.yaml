@@ -1,6 +1,6 @@
 settings:
   topics:
-    blacklist:
+    exclude:
       prefixed:
         - test
 

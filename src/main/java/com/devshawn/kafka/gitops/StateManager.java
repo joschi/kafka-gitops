@@ -298,7 +298,7 @@ public class StateManager {
         List<String> topics = new ArrayList<>();
         desiredStateFile.getSettings()
                 .flatMap(Settings::getTopics)
-                .flatMap(SettingsTopics::getBlacklist)
+                .flatMap(SettingsTopics::getExcludeList)
                 .map(SettingsTopicsList::getPrefixed)
                 .ifPresent(topics::addAll);
 
@@ -313,7 +313,7 @@ public class StateManager {
     private List<String> getPrefixedTopicsToAccept(DesiredStateFile desiredStateFile) {
         return desiredStateFile.getSettings()
                 .flatMap(Settings::getTopics)
-                .flatMap(SettingsTopics::getWhitelist)
+                .flatMap(SettingsTopics::getIncludeList)
                 .map(SettingsTopicsList::getPrefixed)
                 .stream()
                 .flatMap(Collection::stream)

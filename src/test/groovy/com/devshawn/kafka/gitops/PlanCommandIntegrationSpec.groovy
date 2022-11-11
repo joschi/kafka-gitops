@@ -157,9 +157,9 @@ class PlanCommandIntegrationSpec extends Specification {
         "seed-topic-modification-3"         | false
         "seed-topic-modification-no-delete" | true
         "seed-acl-exists"                   | true
-        "seed-blacklist-topics"             | false
-        "seed-blacklist-whitelist-topics"   | false
-        "seed-whitelist-topics"             | false
+        "seed-exclude-topics"               | false
+        "seed-exclude-include-topics"       | false
+        "seed-include-topics"               | false
     }
 
     void 'test include unchanged flag - #planName #includeUnchanged'() {

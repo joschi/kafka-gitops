@@ -1,10 +1,10 @@
 settings:
   topics:
-    blacklist:
+    exclude:
       prefixed:
         - test
         - topic-with-configs-2
-    whitelist:
+    include:
       prefixed:
         - topic-with
 

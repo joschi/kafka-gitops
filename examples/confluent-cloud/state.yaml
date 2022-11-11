@@ -6,6 +6,6 @@ settings:
     services: services.yaml
     users: users.yaml
   topics:
-    blacklist:
+    exclude:
       prefixed:
         - _confluent
