@@ -24,7 +24,7 @@ java {
 }
 
 dependencies {
-    implementation group: 'org.apache.kafka', name: 'kafka-clients', version: '3.3.1'
+    implementation group: 'org.apache.kafka', name: 'kafka-clients', version: '3.3.2'
     implementation platform('com.fasterxml.jackson:jackson-bom:2.14.1')
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
