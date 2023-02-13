@@ -20,6 +20,7 @@ repositories {
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(19))
+        vendor.set(JvmVendorSpec.ADOPTIUM)
     }
 }
 
@@ -95,7 +96,7 @@ task buildRelease(type: Zip, group: "build") {
     from("$buildDir/output")
 }
 
-sonarqube {
+sonar {
     skipProject = providers.environmentVariable("SONAR_TOKEN").getOrElse("").isBlank()
     properties {
         property "sonar.projectKey", "joschi_kafka-gitops"
