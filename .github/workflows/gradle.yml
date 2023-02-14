@@ -54,3 +54,13 @@ jobs:
       with:
         name: kafka-gitops.jar
         path: build/libs/kafka-gitops-all.jar
+
+  dependency-submission:
+    name: Dependencies
+    runs-on: ubuntu-latest
+    permissions: # The Dependency Submission API requires write permission
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run snapshot action
+        uses: mikepenz/gradle-dependency-submission@v0.8.4
