@@ -20,6 +20,6 @@ public abstract class ServiceDetails implements AbstractService {
     public String type;
 
     public List<AclDetails.Builder> getAcls(GetAclOptions options) {
-        throw new UnsupportedOperationException("Method getAcls is not implemented.");
+        throw new UnsupportedOperationException("Method acls is not implemented.");
     }
 }

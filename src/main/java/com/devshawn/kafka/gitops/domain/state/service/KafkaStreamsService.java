@@ -30,11 +30,11 @@ public abstract class KafkaStreamsService extends ServiceDetails {
         List<AclDetails.Builder> acls = new ArrayList<>();
         getProduces().forEach(topic -> acls.add(generateWriteACL(topic, getPrincipal())));
         getConsumes().forEach(topic -> acls.add(generateReadAcl(topic, getPrincipal())));
-        if (options.getDescribeAclEnabled()) {
+        if (options.describeAclEnabled()) {
             List<String> allTopics = HelperUtil.uniqueCombine(getConsumes(), getProduces());
             allTopics.forEach(topic -> acls.add(generateDescribeAcl(topic, getPrincipal())));
         }
-        acls.addAll(getInternalAcls(options.getServiceName()));
+        acls.addAll(getInternalAcls(options.serviceName()));
         return acls;
     }
 

@@ -13,16 +13,16 @@ public class StateUtil {
 
     public static Optional<Integer> fetchReplication(DesiredStateFile desiredStateFile) {
         return desiredStateFile.getSettings()
-                .flatMap(Settings::getTopics)
-                .flatMap(SettingsTopics::getDefaults)
-                .flatMap(SettingsTopicsDefaults::getReplication);
+                .flatMap(Settings::topics)
+                .flatMap(SettingsTopics::defaults)
+                .flatMap(SettingsTopicsDefaults::replication);
     }
 
     public static boolean isDescribeTopicAclEnabled(DesiredStateFile desiredStateFile) {
         return desiredStateFile.getSettings()
-                .flatMap(Settings::getServices)
-                .flatMap(SettingsServices::getAcls)
-                .flatMap(SettingsServicesAcls::getDescribeTopicEnabled)
+                .flatMap(Settings::services)
+                .flatMap(SettingsServices::acls)
+                .flatMap(SettingsServicesAcls::describeTopicEnabled)
                 .orElse(false);
     }
 }

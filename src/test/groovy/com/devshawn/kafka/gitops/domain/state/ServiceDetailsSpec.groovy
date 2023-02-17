@@ -10,10 +10,10 @@ class ServiceDetailsSpec extends Specification {
         ServiceDetails serviceDetails = new ServiceDetails() {}
 
         when:
-        serviceDetails.getAcls(new GetAclOptions.Builder().buildPartial())
+        serviceDetails.getAcls(new GetAclOptions("serviceName", false))
 
         then:
         UnsupportedOperationException ex = thrown(UnsupportedOperationException)
-        ex.message == "Method getAcls is not implemented."
+        ex.message == "Method acls is not implemented."
     }
 }

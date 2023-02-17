@@ -14,7 +14,7 @@ class CustomAclDetailsSpec extends Specification {
     void 'test valid custom acl details - #type #pattern #operation #permission'() {
         setup:
         CustomAclDetails details = new CustomAclDetails.Builder()
-                .setName("name")
+                .setName("getName")
                 .setType(type)
                 .setPattern(pattern)
                 .setHost("*")
@@ -40,7 +40,7 @@ class CustomAclDetailsSpec extends Specification {
     void 'test invalid custom acl details - type - #input'() {
         setup:
         CustomAclDetails details = new CustomAclDetails.Builder()
-                .setName("name")
+                .setName("getName")
                 .setType(input)
                 .setPattern(PatternType.LITERAL.name())
                 .setHost("*")
@@ -65,7 +65,7 @@ class CustomAclDetailsSpec extends Specification {
     void 'test invalid custom acl details - pattern - #input'() {
         setup:
         CustomAclDetails details = new CustomAclDetails.Builder()
-                .setName("name")
+                .setName("getName")
                 .setType(ResourceType.TOPIC.name())
                 .setPattern(input)
                 .setHost("*")
@@ -90,7 +90,7 @@ class CustomAclDetailsSpec extends Specification {
     void 'test invalid custom acl details - operation - #input'() {
         setup:
         CustomAclDetails details = new CustomAclDetails.Builder()
-                .setName("name")
+                .setName("getName")
                 .setType(ResourceType.TOPIC.name())
                 .setPattern(PatternType.LITERAL.name())
                 .setHost("*")
@@ -115,7 +115,7 @@ class CustomAclDetailsSpec extends Specification {
     void 'test invalid custom acl details - permission - #input'() {
         setup:
         CustomAclDetails details = new CustomAclDetails.Builder()
-                .setName("name")
+                .setName("getName")
                 .setType(ResourceType.TOPIC.name())
                 .setPattern(PatternType.LITERAL.name())
                 .setHost("*")

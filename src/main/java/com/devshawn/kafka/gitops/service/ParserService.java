@@ -39,17 +39,17 @@ public class ParserService {
 
     public DesiredStateFile parseStateFile() {
         DesiredStateFile desiredStateFile = parseStateFile(file);
-        return desiredStateFile.getSettings().flatMap(Settings::getFiles).map(settingsFiles -> {
+        return desiredStateFile.getSettings().flatMap(Settings::files).map(settingsFiles -> {
             DesiredStateFile.Builder builder = new DesiredStateFile.Builder().mergeFrom(desiredStateFile);
-            settingsFiles.getServices()
+            settingsFiles.services()
                     .map(services -> loadExternalFile(services, "Services"))
                     .ifPresent(servicesFile -> builder.putAllServices(servicesFile.getServices()));
 
-            settingsFiles.getTopics()
+            settingsFiles.topics()
                     .map(topics -> loadExternalFile(topics, "Topics"))
                     .ifPresent(topicsFile -> builder.putAllTopics(topicsFile.getTopics()));
 
-            settingsFiles.getUsers()
+            settingsFiles.users()
                     .map(users -> loadExternalFile(users, "Users"))
                     .ifPresent(usersFile -> builder.putAllUsers(usersFile.getUsers()));
 

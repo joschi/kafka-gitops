@@ -64,9 +64,9 @@ public class KafkaService {
 
     public void createTopic(String topicName, TopicDetails topicDetails) {
         try (final AdminClient adminClient = buildAdminClient()) {
-            short replicationFactor = topicDetails.getReplication().orElseThrow().shortValue();
-            NewTopic newTopic = new NewTopic(topicName, topicDetails.getPartitions(), replicationFactor);
-            newTopic.configs(topicDetails.getConfigs());
+            short replicationFactor = topicDetails.replication().orElseThrow().shortValue();
+            NewTopic newTopic = new NewTopic(topicName, topicDetails.partitions(), replicationFactor);
+            newTopic.configs(topicDetails.configs());
             adminClient.createTopics(Collections.singletonList(newTopic)).all().get();
         } catch (InterruptedException | ExecutionException | NoSuchElementException ex) {
             throw new KafkaExecutionException("Error thrown when attempting to create a Kafka topic", ex.getMessage());

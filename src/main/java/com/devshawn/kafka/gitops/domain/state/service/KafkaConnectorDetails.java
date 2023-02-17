@@ -24,7 +24,7 @@ public interface KafkaConnectorDetails extends AbstractService {
         getProduces().forEach(topic -> acls.add(generateWriteACL(topic, principal)));
         getConsumes().forEach(topic -> acls.add(generateReadAcl(topic, principal)));
 
-        if (options.getDescribeAclEnabled()) {
+        if (options.describeAclEnabled()) {
             List<String> allTopics = HelperUtil.uniqueCombine(getConsumes(), getProduces());
             allTopics.forEach(topic -> acls.add(generateDescribeAcl(topic, principal)));
         }

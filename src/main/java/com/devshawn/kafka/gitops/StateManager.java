@@ -144,9 +144,9 @@ public class StateManager {
 
     private void createServiceAccount(String name, List<ServiceAccount> serviceAccounts, AtomicInteger count, boolean isUser) {
         String fullName = isUser ? String.format("user-%s", name) : name;
-        if (serviceAccounts.stream().noneMatch(it -> it.getName().equals(fullName))) {
+        if (serviceAccounts.stream().noneMatch(it -> it.id().equals(fullName))) {
             ServiceAccount serviceAccount = confluentCloudService.createServiceAccount(name, isUser);
-            LogUtil.printSimpleSuccess(String.format("Successfully created service account: %s", serviceAccount.getName()));
+            LogUtil.printSimpleSuccess(String.format("Successfully created service account: %s", serviceAccount.name()));
             count.getAndIncrement();
         }
     }
@@ -174,8 +174,9 @@ public class StateManager {
         Optional<Integer> defaultReplication = StateUtil.fetchReplication(desiredStateFile);
         if (defaultReplication.isPresent()) {
             desiredStateFile.getTopics().forEach((name, details) -> {
-                Integer replication = details.getReplication().isPresent() ? details.getReplication().get() : defaultReplication.get();
-                desiredState.putTopics(name, new TopicDetails.Builder().mergeFrom(details).setReplication(replication).build());
+                Optional<Integer> replication = details.replication().or(() -> defaultReplication);
+                TopicDetails topicDetails = new TopicDetails(details.partitions(), replication, details.configs());
+                desiredState.putTopics(name, topicDetails);
             });
         } else {
             desiredState.putAllTopics(desiredStateFile.getTopics());
@@ -186,10 +187,10 @@ public class StateManager {
         List<ServiceAccount> serviceAccounts = confluentCloudService.getServiceAccounts();
         desiredStateFile.getServices().forEach((name, service) -> {
             String serviceAccountId = serviceAccounts.stream()
-                    .filter(it -> it.getName().equals(name))
+                    .filter(it -> it.name().equals(name))
                     .findFirst()
                     .orElseThrow(() -> new ServiceAccountNotFoundException(name))
-                    .getId();
+                    .id();
 
             AtomicInteger index = new AtomicInteger();
             for (AclDetails.Builder builder : service.getAcls(buildGetAclOptions(name))) {
@@ -222,10 +223,10 @@ public class StateManager {
             AtomicInteger index = new AtomicInteger();
             String serviceAccountName = String.format("user-%s", name);
 
-            Optional<ServiceAccount> serviceAccount = serviceAccounts.stream().filter(it -> it.getName().equals(serviceAccountName)).findFirst();
-            String serviceAccountId = serviceAccount.orElseThrow(() -> new ServiceAccountNotFoundException(serviceAccountName)).getId();
+            Optional<ServiceAccount> serviceAccount = serviceAccounts.stream().filter(it -> it.name().equals(serviceAccountName)).findFirst();
+            String serviceAccountId = serviceAccount.orElseThrow(() -> new ServiceAccountNotFoundException(serviceAccountName)).id();
 
-            user.getRoles().forEach(role -> {
+            user.roles().forEach(role -> {
                 List<AclDetails.Builder> acls = roleService.getAcls(role, principal(serviceAccountId));
                 acls.forEach(acl -> desiredState.putAcls(acl(name, index), acl.build()));
             });
@@ -265,10 +266,10 @@ public class StateManager {
     private void generateUserAcls(DesiredState.Builder desiredState, DesiredStateFile desiredStateFile) {
         desiredStateFile.getUsers().forEach((name, user) -> {
             AtomicInteger index = new AtomicInteger();
-            String userPrincipal = user.getPrincipal()
+            String userPrincipal = user.principal()
                     .orElseThrow(() -> new MissingConfigurationException(String.format("Missing principal for user %s", name)));
 
-            for (String role : user.getRoles()) {
+            for (String role : user.roles()) {
                 List<AclDetails.Builder> acls = roleService.getAcls(role, userPrincipal);
                 for (AclDetails.Builder acl : acls) {
                     desiredState.putAcls(acl(name, index), acl.build());
@@ -297,9 +298,9 @@ public class StateManager {
     private List<String> getPrefixedTopicsToIgnore(DesiredStateFile desiredStateFile) {
         List<String> topics = new ArrayList<>();
         desiredStateFile.getSettings()
-                .flatMap(Settings::getTopics)
-                .flatMap(SettingsTopics::getExcludeList)
-                .map(SettingsTopicsList::getPrefixed)
+                .flatMap(Settings::topics)
+                .flatMap(SettingsTopics::excludeList)
+                .map(SettingsTopicsList::prefixed)
                 .ifPresent(topics::addAll);
 
         desiredStateFile.getServices().forEach((name, service) -> {
@@ -312,16 +313,16 @@ public class StateManager {
 
     private List<String> getPrefixedTopicsToAccept(DesiredStateFile desiredStateFile) {
         return desiredStateFile.getSettings()
-                .flatMap(Settings::getTopics)
-                .flatMap(SettingsTopics::getIncludeList)
-                .map(SettingsTopicsList::getPrefixed)
+                .flatMap(Settings::topics)
+                .flatMap(SettingsTopics::includeList)
+                .map(SettingsTopicsList::prefixed)
                 .stream()
                 .flatMap(Collection::stream)
                 .toList();
     }
 
     private GetAclOptions buildGetAclOptions(String serviceName) {
-        return new GetAclOptions.Builder().setServiceName(serviceName).setDescribeAclEnabled(describeAclEnabled).build();
+        return new GetAclOptions(serviceName, describeAclEnabled);
     }
 
     private void validateCustomAcls(DesiredStateFile desiredStateFile) {
@@ -348,7 +349,7 @@ public class StateManager {
         Optional<Integer> defaultReplication = StateUtil.fetchReplication(desiredStateFile);
         if (defaultReplication.isEmpty()) {
             desiredStateFile.getTopics().forEach((name, details) -> {
-                if (details.getReplication().isEmpty()) {
+                if (details.replication().isEmpty()) {
                     throw new ValidationException(String.format("Not set: [replication] in state file definition: topics -> %s", name));
                 }
             });
@@ -361,8 +362,8 @@ public class StateManager {
 
     private boolean isConfluentCloudEnabled(DesiredStateFile desiredStateFile) {
         return desiredStateFile.getSettings()
-                .flatMap(Settings::getCcloud)
-                .map(SettingsCCloud::isEnabled)
+                .flatMap(Settings::ccloud)
+                .map(SettingsCCloud::enabled)
                 .orElse(false);
     }
 

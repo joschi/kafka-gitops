@@ -31,13 +31,13 @@ public abstract class ApplicationService extends ServiceDetails {
         getProduces().forEach(topic -> acls.add(generateWriteACL(topic, getPrincipal())));
         getConsumes().forEach(topic -> acls.add(generateReadAcl(topic, getPrincipal())));
 
-        if (options.getDescribeAclEnabled()) {
+        if (options.describeAclEnabled()) {
             List<String> allTopics = HelperUtil.uniqueCombine(getConsumes(), getProduces());
             allTopics.forEach(topic -> acls.add(generateDescribeAcl(topic, getPrincipal())));
         }
 
         if (!getConsumes().isEmpty()) {
-            String groupId = getGroupId().orElseGet(options::getServiceName);
+            String groupId = getGroupId().orElseGet(options::serviceName);
             acls.add(generateConsumerGroupAcl(groupId, getPrincipal(), "READ"));
         }
         return acls;

@@ -15,8 +15,7 @@ class ApplicationServiceSpec extends Specification {
                 .build()
 
         when:
-        List<AclDetails.Builder> result = sut.getAcls(new GetAclOptions.Builder()
-                .setServiceName("application-serivce").setDescribeAclEnabled(false).build())
+        List<AclDetails.Builder> result = sut.getAcls(new GetAclOptions("application-serivce", false))
 
         then:
         result

@@ -62,24 +62,24 @@ public final class LogUtil {
     }
 
     private static void printTopicConfigPlanForNewTopics(TopicDetails topicDetails) {
-        System.out.println(green(String.format("\t+ partitions: %s", topicDetails.getPartitions())));
-        System.out.println(green(String.format("\t+ replication: %s", topicDetails.getReplication().orElseThrow())));
-        if (topicDetails.getConfigs().size() > 0) {
+        System.out.println(green(String.format("\t+ partitions: %s", topicDetails.partitions())));
+        System.out.println(green(String.format("\t+ replication: %s", topicDetails.replication().orElseThrow())));
+        if (topicDetails.configs().size() > 0) {
             System.out.println(green("\t+ configs:"));
-            topicDetails.getConfigs().forEach((key, value) -> System.out.println(green(String.format("\t\t+ %s: %s", key, value))));
+            topicDetails.configs().forEach((key, value) -> System.out.println(green(String.format("\t\t+ %s: %s", key, value))));
         }
     }
 
     private static void printTopicConfigPlan(TopicConfigPlan topicConfigPlan) {
-        switch (topicConfigPlan.getAction()) {
+        switch (topicConfigPlan.action()) {
             case ADD:
-                System.out.println(green(String.format("\t\t+ %s: %s", topicConfigPlan.getKey(), topicConfigPlan.getValue().orElseThrow())));
+                System.out.println(green(String.format("\t\t+ %s: %s", topicConfigPlan.key(), topicConfigPlan.value().orElseThrow())));
                 break;
             case UPDATE:
-                System.out.println(yellow(String.format("\t\t~ %s: %s", topicConfigPlan.getKey(), topicConfigPlan.getValue().orElseThrow())));
+                System.out.println(yellow(String.format("\t\t~ %s: %s", topicConfigPlan.key(), topicConfigPlan.value().orElseThrow())));
                 break;
             case REMOVE:
-                System.out.println(red(String.format("\t\t- %s", topicConfigPlan.getKey())));
+                System.out.println(red(String.format("\t\t- %s", topicConfigPlan.key())));
                 break;
         }
     }

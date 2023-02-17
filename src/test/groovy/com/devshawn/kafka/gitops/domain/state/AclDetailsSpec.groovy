@@ -40,6 +40,6 @@ class AclDetailsSpec extends Specification {
         name           | type    | pattern    | host        | operation  | permission | principal
         "test"         | "TOPIC" | "LITERAL"  | "*"         | "DESCRIBE" | "ALLOW"    | null
         "topic-one"    | "TOPIC" | "LITERAL"  | "*"         | "WRITE"    | "DENY"     | "super.admin"
-        "another-name" | "GROUP" | "PREFIXED" | "localhost" | "READ"     | "ALLOW"    | "User:12345"
+        "another-getName" | "GROUP" | "PREFIXED" | "localhost" | "READ"     | "ALLOW"    | "User:12345"
     }
 }

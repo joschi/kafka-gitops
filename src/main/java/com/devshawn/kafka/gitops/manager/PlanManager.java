@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class PlanManager {
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(PlanManager.class);
@@ -97,42 +98,43 @@ public class PlanManager {
                 .toList();
 
         customConfigs.forEach(currentConfig -> {
-            String newConfig = topicDetails.getConfigs().getOrDefault(currentConfig.name(), null);
-
-            TopicConfigPlan.Builder topicConfigPlan = new TopicConfigPlan.Builder()
-                    .setKey(currentConfig.name());
+            String newConfig = topicDetails.configs().getOrDefault(currentConfig.name(), null);
 
             if (currentConfig.value().equals(newConfig)) {
-                topicConfigPlan.setAction(PlanAction.NO_CHANGE);
-                topicConfigPlan.setValue(currentConfig.value());
-                configPlans.put(currentConfig.name(), topicConfigPlan.build());
+                TopicConfigPlan topicConfigPlan = new TopicConfigPlan(
+                        currentConfig.name(),
+                        Optional.ofNullable(currentConfig.value()),
+                        PlanAction.NO_CHANGE
+                );
+                configPlans.put(currentConfig.name(), topicConfigPlan);
             } else if (newConfig == null) {
-                topicConfigPlan.setAction(PlanAction.REMOVE);
-                configPlans.put(currentConfig.name(), topicConfigPlan.build());
+                TopicConfigPlan topicConfigPlan = new TopicConfigPlan(
+                        currentConfig.name(),
+                        Optional.empty(),
+                        PlanAction.REMOVE
+                );
+
+                configPlans.put(currentConfig.name(), topicConfigPlan);
                 topicPlan.setAction(PlanAction.UPDATE);
             }
         });
 
-        topicDetails.getConfigs().forEach((key, value) -> {
+        topicDetails.configs().forEach((key, value) -> {
             ConfigEntry currentConfig = customConfigs.stream().filter(it -> it.name().equals(key)).findFirst().orElse(null);
 
-            TopicConfigPlan.Builder topicConfigPlan = new TopicConfigPlan.Builder()
-                    .setKey(key)
-                    .setValue(value);
-
             if (currentConfig == null) {
-                topicConfigPlan.setAction(PlanAction.ADD);
-                configPlans.put(key, topicConfigPlan.build());
+                TopicConfigPlan topicConfigPlan = new TopicConfigPlan(key, Optional.ofNullable(value), PlanAction.ADD);
+                configPlans.put(key, topicConfigPlan);
                 topicPlan.setAction(PlanAction.UPDATE);
             } else if (!currentConfig.value().equals(value)) {
-                topicConfigPlan.setAction(PlanAction.UPDATE);
-                configPlans.put(key, topicConfigPlan.build());
+                TopicConfigPlan topicConfigPlan = new TopicConfigPlan(key, Optional.ofNullable(value), PlanAction.UPDATE);
+                configPlans.put(key, topicConfigPlan);
                 topicPlan.setAction(PlanAction.UPDATE);
             }
         });
 
         configPlans.forEach((key, plan) -> {
-            LOG.info("[PLAN] Topic {} | [{}] {}", topicName, plan.getAction(), plan.getKey());
+            LOG.info("[PLAN] Topic {} | [{}] {}", topicName, plan.action(), plan.key());
             topicPlan.addTopicConfigPlans(plan);
         });
     }
@@ -206,7 +208,7 @@ public class PlanManager {
                     LOG.info("Overwriting existing plan file at {}", planFile);
                 }
                 DesiredPlan outputPlan = managerConfig.isIncludeUnchangedEnabled() ? desiredPlan : desiredPlan.toChangesOnlyPlan();
-                try(FileWriter writer = new FileWriter(planFile)) {
+                try (FileWriter writer = new FileWriter(planFile)) {
                     writer.write(objectMapper.writeValueAsString(outputPlan));
                 }
             } catch (IOException ex) {

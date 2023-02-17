@@ -46,14 +46,14 @@ public class ApplyManager {
         ConfigResource configResource = new ConfigResource(ConfigResource.Type.TOPIC, topicPlan.getName());
         List<AlterConfigOp> configOps = new ArrayList<>();
 
-        ConfigEntry configEntry = new ConfigEntry(topicConfigPlan.getKey(), topicConfigPlan.getValue().orElse(null));
+        ConfigEntry configEntry = new ConfigEntry(topicConfigPlan.key(), topicConfigPlan.value().orElse(null));
 
         // TODO: Make OpType work with append/subtract
-        if (topicConfigPlan.getAction() == PlanAction.ADD) {
+        if (topicConfigPlan.action() == PlanAction.ADD) {
             configOps.add(new AlterConfigOp(configEntry, AlterConfigOp.OpType.SET));
-        } else if (topicConfigPlan.getAction() == PlanAction.UPDATE) {
+        } else if (topicConfigPlan.action() == PlanAction.UPDATE) {
             configOps.add(new AlterConfigOp(configEntry, AlterConfigOp.OpType.SET));
-        } else if (topicConfigPlan.getAction() == PlanAction.REMOVE) {
+        } else if (topicConfigPlan.action() == PlanAction.REMOVE) {
             configOps.add(new AlterConfigOp(configEntry, AlterConfigOp.OpType.DELETE));
         }
 

@@ -33,7 +33,7 @@ public abstract class KafkaConnectService extends ServiceDetails {
     public List<AclDetails.Builder> getAcls(GetAclOptions options) {
         List<AclDetails.Builder> acls = new ArrayList<>();
         getProduces().forEach(topic -> acls.add(generateWriteACL(topic, getPrincipal())));
-        if (options.getDescribeAclEnabled()) {
+        if (options.describeAclEnabled()) {
             getProduces().forEach(topic -> acls.add(generateDescribeAcl(topic, getPrincipal())));
         }
         acls.addAll(getConnectWorkerAcls(options));
@@ -41,10 +41,10 @@ public abstract class KafkaConnectService extends ServiceDetails {
     }
 
     private List<AclDetails.Builder> getConnectWorkerAcls(GetAclOptions options) {
-        String groupId = getGroupId().orElse(options.getServiceName());
-        String configTopic = getConfigTopic(options.getServiceName());
-        String offsetTopic = getOffsetTopic(options.getServiceName());
-        String statusTopic = getStatusTopic(options.getServiceName());
+        String groupId = getGroupId().orElse(options.serviceName());
+        String configTopic = getConfigTopic(options.serviceName());
+        String offsetTopic = getOffsetTopic(options.serviceName());
+        String statusTopic = getStatusTopic(options.serviceName());
 
         List<AclDetails.Builder> acls = new ArrayList<>();
         acls.add(generateReadAcl(configTopic, getPrincipal()));
@@ -60,19 +60,19 @@ public abstract class KafkaConnectService extends ServiceDetails {
 
     private String getConfigTopic(String serviceName) {
         return getStorageTopics()
-                .flatMap(KafkaConnectStorageTopics::getConfig)
+                .flatMap(KafkaConnectStorageTopics::config)
                 .orElseGet(() -> String.format("connect-configs-%s", serviceName));
     }
 
     private String getOffsetTopic(String serviceName) {
         return getStorageTopics()
-                .flatMap(KafkaConnectStorageTopics::getOffset)
+                .flatMap(KafkaConnectStorageTopics::offset)
                 .orElseGet(() -> String.format("connect-offsets-%s", serviceName));
     }
 
     private String getStatusTopic(String serviceName) {
         return getStorageTopics()
-                .flatMap(KafkaConnectStorageTopics::getStatus)
+                .flatMap(KafkaConnectStorageTopics::status)
                 .orElseGet( () -> String.format("connect-status-%s", serviceName));
     }
 
