@@ -1,4 +1,4 @@
-FROM eclipse-temurin:19-jre-jammy
+FROM eclipse-temurin:20-jre-jammy
 LABEL org.opencontainers.image.title="kafka-gitops"
 LABEL org.opencontainers.image.description="GitOps for Apache Kafka"
 LABEL org.opencontainers.image.url="https://github.com/joschi/kafka-gitops"
