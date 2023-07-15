@@ -2,7 +2,7 @@ version: '2.1'
 
 services:
   zoo1:
-    image: confluentinc/cp-zookeeper:7.4.0
+    image: confluentinc/cp-zookeeper:7.4.1
     hostname: zoo1
     ports:
       - "2181:2181"
