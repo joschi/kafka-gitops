@@ -42,7 +42,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
     testCompileOnly group: 'junit', name: 'junit', version: '4.13.2'
     testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
-    testImplementation group: 'org.apache.groovy', name: 'groovy', version: '4.0.13'
+    testImplementation group: 'org.apache.groovy', name: 'groovy', version: '4.0.14'
     testImplementation group: 'org.spockframework', name: 'spock-core', version: '2.3-groovy-4.0'
     testImplementation group: 'org.spockframework', name:'spock-junit4', version: '2.3-groovy-4.0'
     testImplementation group: 'cglib', name: 'cglib-nodep', version: '3.3.0'
