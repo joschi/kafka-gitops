@@ -43,14 +43,14 @@ jobs:
       run: ./gradlew --info --scan build jacocoTestReport sonar
 
     - name: Upload build reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: build-reports
         path: build/reports/
 
     - name: Upload build artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: kafka-gitops.jar
         path: build/libs/kafka-gitops-all.jar
