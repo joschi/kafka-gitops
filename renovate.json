@@ -1,6 +1,24 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    ":dependencyDashboard",
+    ":label(dependencies)",
+    ":prConcurrentLimitNone",
+    ":prHourlyLimitNone"
+  ],
+  "packageRules": [
+    {
+      "matchManagers": ["docker-compose", "dockerfile"],
+      "appendLabels": ["docker"]
+    },
+    {
+      "matchManagers": ["gradle", "gradle-wrapper"],
+      "appendLabels": ["java"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "appendLabels": ["github_actions"]
+    }
   ]
 }
