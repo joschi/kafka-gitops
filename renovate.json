@@ -10,15 +10,15 @@
   "packageRules": [
     {
       "matchManagers": ["docker-compose", "dockerfile"],
-      "appendLabels": ["docker"]
+      "addLabels": ["docker"]
     },
     {
       "matchManagers": ["gradle", "gradle-wrapper"],
-      "appendLabels": ["java"]
+      "addLabels": ["java"]
     },
     {
       "matchManagers": ["github-actions"],
-      "appendLabels": ["github_actions"]
+      "addLabels": ["github_actions"]
     }
   ]
 }
