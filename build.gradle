@@ -34,7 +34,7 @@ dependencies {
 
     implementation 'org.slf4j:slf4j-api:2.0.12'
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.2'
-    implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.5.2'
+    implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.5.3'
 
     annotationProcessor 'org.inferred:freebuilder:2.8.0'
     compileOnly 'org.inferred:freebuilder:2.8.0'
